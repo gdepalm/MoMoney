@@ -5,7 +5,7 @@ Kelompok 12
 
 Ketua Kelompok: AZFANOVA SAMMY RAFIF SAPUTRA - 521764
 
-Anggota 1:
+Anggota 1: Polikarpus Arya Pradhanika-512404
 
 Anggota 2:
 
