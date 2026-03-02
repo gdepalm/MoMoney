@@ -840,9 +840,9 @@ function LandingPage({ onNavigate }) {
 
         {/* Images */}
         <div style={{ marginTop: "40px", display: "flex", gap: "20px", flexWrap: "wrap" }}>
-          <img src="/images/modul1.1.jpeg" alt="modul1.1" width="200" />
-          <img src="/images/modul1.2.jpeg" alt="modul1.2" width="200" />
-          <img src="/images/modul1.3.jpeg" alt="modul1.3" width="200" />
+          <img src="/MoMoney/images/modul1.1.jpeg" alt="modul1.1" width="200" />
+          <img src="/MoMoney/images/modul1.2.jpeg" alt="modul1.2" width="200" />
+          <img src="/MoMoney/images/modul1.3.jpeg" alt="modul1.3" width="200" />
         </div>
       </div>
     </section>
