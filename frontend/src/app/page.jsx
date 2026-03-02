@@ -704,6 +704,170 @@ function LandingPage({ onNavigate }) {
         </button>
       </div>
 
+    <section
+      style={{
+        background: "#f4f6f9",
+        padding: "70px 20px",
+        borderTop: "1px solid #ddd",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "1100px",
+          margin: "0 auto",
+          fontFamily: "Arial, Helvetica, sans-serif",
+          color: "#333",
+        }}
+      >
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: "50px" }}>
+          <h2 style={{ margin: 0, fontSize: "32px", fontWeight: 700 }}>
+            MoMoney
+          </h2>
+          <p style={{ marginTop: "10px", fontSize: "18px", color: "#666" }}>
+            AI-Powered Financial Automation Solution
+          </p>
+        </div>
+
+        {/* Info & Team */}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "40px",
+            marginBottom: "50px",
+          }}
+        >
+          {/* Project Info */}
+          <div style={{ flex: 1, minWidth: "300px" }}>
+            <h3
+              style={{
+                fontSize: "20px",
+                marginBottom: "15px",
+                borderBottom: "2px solid #222",
+                display: "inline-block",
+                paddingBottom: "5px",
+              }}
+            >
+              Project Information
+            </h3>
+            <p>
+              <strong>Project:</strong> Senior Project TI
+            </p>
+            <p>
+              <strong>Product Type:</strong> Financial Technology
+            </p>
+            <p style={{ marginBottom: "5px" }}>
+              <strong>Institution:</strong>
+            </p>
+            <p style={{ margin: 0 }}>
+              Departemen Teknologi Elektro dan Teknologi Informasi
+            </p>
+            <p style={{ margin: 0 }}>Fakultas Teknik</p>
+            <p style={{ margin: 0 }}>Universitas Gadjah Mada</p>
+          </div>
+
+          {/* Team Members */}
+          <div style={{ flex: 1, minWidth: "300px" }}>
+            <h3
+              style={{
+                fontSize: "20px",
+                marginBottom: "15px",
+                borderBottom: "2px solid #222",
+                display: "inline-block",
+                paddingBottom: "5px",
+              }}
+            >
+              Team Members
+            </h3>
+            <ul style={{ paddingLeft: "20px", lineHeight: 1.8 }}>
+              <li>Polikarpus Arya Pradhanika — 512404</li>
+              <li>Gabriele Ghea De Palma — 512218</li>
+              <li>Azfanova Sammy Rafif Saputra — 521764</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Background */}
+        <div style={{ marginBottom: "50px" }}>
+          <h3
+            style={{
+              fontSize: "20px",
+              marginBottom: "15px",
+              borderBottom: "2px solid #222",
+              display: "inline-block",
+              paddingBottom: "5px",
+            }}
+          >
+            Background & Problem
+          </h3>
+          <p
+            style={{
+              textAlign: "justify",
+              lineHeight: 1.8,
+              color: "#555",
+            }}
+          >
+            Di era transformasi digital, kecepatan pengolahan data menjadi kunci utama dalam menjaga akurasi laporan keuangan perusahaan.
+            Namun, banyak organisasi masih terjebak dalam metode administrasi tradisional yang mengandalkan pemrosesan bukti transaksi secara manual.
+            Fragmentasi antara transaksi lapangan dengan sistem akuntansi pusat seringkali menciptakan keterlambatan pelaporan.
+            Tanpa adanya sistem yang mampu menjembatani jeda waktu tersebut, perusahaan berisiko mengalami ketidakakuratan data kas (settlement)
+            yang dapat menghambat proses pengambilan keputusan strategis.
+          </p>
+        </div>
+
+        {/* Solution */}
+        <div>
+          <h3
+            style={{
+              fontSize: "20px",
+              marginBottom: "15px",
+              borderBottom: "2px solid #222",
+              display: "inline-block",
+              paddingBottom: "5px",
+            }}
+          >
+            Proposed Solution
+          </h3>
+          <ul style={{ paddingLeft: "20px", lineHeight: 1.8, color: "#555" }}>
+            <li>Aplikasi berbasis AI untuk mengintegrasikan bukti transaksi fisik ke sistem pelaporan perusahaan secara instan.</li>
+            <li>AI memindai dan mengonversi ribuan nota menjadi format digital siap integrasi.</li>
+            <li>Validasi otomatis untuk mendeteksi duplikasi serta ketidaksesuaian nilai pajak dan diskon.</li>
+            <li>Sinkronisasi langsung ke database pusat mempercepat proses tutup buku dari hitungan hari menjadi hitungan jam.</li>
+            <li>Digitalisasi bukti transaksi memastikan arsip tersusun sistematis untuk mempermudah audit internal maupun eksternal.</li>
+          </ul>
+        </div>
+
+        {/* Images */}
+        <div
+          style={{
+            marginTop: "40px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "30px"
+          }}
+        >
+          <img
+            src="/MoMoney/images/modul1.1.jpeg"
+            alt="modul1.1"
+            style={{ width: "100%", height: "auto" }}
+          />
+
+          <img
+            src="/MoMoney/images/modul1.2.jpeg"
+            alt="modul1.2"
+            style={{ width: "100%", height: "auto" }}
+          />
+
+          <img
+            src="/MoMoney/images/modul1.3.jpeg"
+            alt="modul1.3"
+            style={{ width: "100%", height: "auto" }}
+          />
+        </div>
+      </div>
+    </section>
+
       <div className="footer">
         <div className="navbar-logo">
           <div className="logo-mark" style={{ width: 24, height: 24 }}><Icon d={Icons.scan} size={12} stroke={2} /></div>
