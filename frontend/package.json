@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "export": "next export",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "deploy:github": "npm run build && npm run export && rm -rf docs && mv out docs && touch docs/.nojekyll"
   },
   "dependencies": {
     "next": "16.1.6",
