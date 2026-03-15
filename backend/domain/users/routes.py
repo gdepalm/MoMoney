@@ -1,0 +1,63 @@
+from fastapi import APIRouter, Request, Depends
+from starlette.responses import RedirectResponse
+from sqlmodel import Session, select
+
+from services.oauth_services import oauth
+from domain.users.entity import User
+from database import get_session
+
+router = APIRouter()
+
+
+@router.get("/login")
+async def login(request: Request):
+    # This generates the URL to Google's login page
+    redirect_uri = request.url_for('auth_callback')
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+
+@router.get("/auth/callback", name='auth_callback')
+async def auth_callback(request: Request, session: Session = Depends(get_session)):
+    # Google sends the user back here with a code
+    token = await oauth.google.authorize_access_token(request)
+    user_info = token.get('userinfo')
+    if not user_info:
+        return RedirectResponse(url='/users/login-error')
+
+    google_id = user_info['sub']
+
+    # Check if user already exists
+    statement = select(User).where(User.google_id == google_id)
+    db_user = session.exec(statement).first()
+
+    if db_user:
+        # User exists, update their info if necessary
+        db_user.name = user_info['name']
+        db_user.email = user_info['email']
+    else:
+        # User does not exist, create a new one
+        db_user = User(
+            google_id=google_id,
+            name=user_info['name'],
+            email=user_info['email']
+        )
+
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+
+    request.session['user'] = db_user.dict()
+    return RedirectResponse(url='/users/')
+
+
+@router.get("/users/")
+async def homepage(request: Request):
+    user = request.session.get('user')
+    if user:
+        print(f"User info: {user}")
+        return {"message": f"Hello, {user['name']}", "user": {
+            "id": user['id'],
+            "name": user['name'],
+            "email": user['email']
+        }}
+    return {"message": "Not logged in. Go to /login"}

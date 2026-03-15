@@ -1,10 +1,9 @@
 from typing import Optional
 from sqlmodel import Field, SQLModel
-from pydantic import EmailStr
 
 
-class User(SQLModel, table=True):
+class Group(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    google_id: str = Field(unique=True, index=True)
+    owner_id: int = Field(index=True)
     name: str
-    email: EmailStr
+    columns: list[str] = Field(default_factory=list)
