@@ -1,98 +1,98 @@
-from fastapi import APIRouter, Request, Depends
-from starlette.responses import RedirectResponse
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 
-from services.oauth_services import oauth
-from domain.users.entity import User
 from domain.groups.entity import Group
-from domain.groups.schemas import GroupCreate, GroupResponse
+from domain.groups.schemas import GroupCreate, GroupRead, GroupUpdate
+from domain.users.entity import User
 from database import get_session
 
 router = APIRouter()
 
 
-@router.post("/")
-async def create_group(request: Request, session: Session = Depends(get_session)):
-    user = request.session.get('user')
+def get_current_user(request: Request, session: Session = Depends(get_session)) -> User:
+    user_info = request.session.get("user")
+    if not user_info or not user_info.get("id"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user = session.get(User, user_info["id"])
     if not user:
-        return RedirectResponse(url='/users/login')
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
 
-    # Here you would add logic to create a new group in the database
-    # For example:
-    new_group = Group(owner_id=user['id'], name="New Group", columns=[])
-    session.add(new_group)
+
+@router.post("/", response_model=GroupRead)
+def create_group(
+    *,
+    session: Session = Depends(get_session),
+    group: GroupCreate,
+    current_user: User = Depends(get_current_user)
+):
+    db_group = Group(name=group.name, owner_id=current_user.id,
+                     columns=group.columns if hasattr(group, 'columns') else [])
+    session.add(db_group)
     session.commit()
-    session.refresh(new_group)
+    session.refresh(db_group)
+    return db_group
 
-    return {"message": "Group created successfully"}
+
+@router.get("/", response_model=list[GroupRead])
+def read_groups(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    statement = select(Group).where(Group.owner_id == current_user.id)
+    return session.exec(statement).all()
+
+
+@router.get("/{group_id}", response_model=GroupRead)
+def read_group(
+    group_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    group = session.get(Group, group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    if group.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    return group
+
+
+@router.patch("/{group_id}", response_model=GroupRead)
+def update_group(
+    group_id: int,
+    group: GroupUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    db_group = session.get(Group, group_id)
+    if not db_group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    if db_group.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    group_data = group.model_dump(exclude_unset=True)
+    for key, value in group_data.items():
+        setattr(db_group, key, value)
+
+    session.add(db_group)
+    session.commit()
+    session.refresh(db_group)
+    return db_group
 
 
 @router.delete("/{group_id}")
-async def delete_group(group_id: int, request: Request, session: Session = Depends(get_session)):
-    user = request.session.get('user')
-    if not user:
-        return RedirectResponse(url='/users/login')
+def delete_group(
+    group_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    group = session.get(Group, group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    if group.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
 
-    # Here you would add logic to delete the group from the database
-    # For example:
-    statement = select(Group).where(
-        Group.id == group_id, Group.owner_id == user['id'])
-    group = session.exec(statement).first()
-    if group:
-        session.delete(group)
-        session.commit()
-        return {"message": "Group deleted successfully"}
-    else:
-        return {"message": "Group not found or you do not have permission to delete it"}
-
-
-@router.get("/{group_id}", response_model=GroupResponse)
-async def get_group(group_id: int, request: Request, session: Session = Depends(get_session)):
-    user = request.session.get('user')
-    if not user:
-        return RedirectResponse(url='/users/login')
-
-    # Here you would add logic to retrieve the group from the database
-    # For example:
-    statement = select(Group).where(
-        Group.id == group_id, Group.owner_id == user['id'])
-    group = session.exec(statement).first()
-    if group:
-        return GroupResponse(id=group.id, name=group.name, columns=group.columns)
-    else:
-        return {"message": "Group not found or you do not have permission to view it"}
-
-
-@router.get("/", response_model=list[GroupResponse])
-async def list_groups(request: Request, session: Session = Depends(get_session)):
-    user = request.session.get('user')
-    if not user:
-        return RedirectResponse(url='/users/login')
-
-    # Here you would add logic to retrieve all groups for the user from the database
-    # For example:
-    statement = select(Group).where(Group.owner_id == user['id'])
-    groups = session.exec(statement).all()
-    return [GroupResponse(id=group.id, name=group.name, columns=group.columns) for group in groups]
-
-
-@router.put("/{group_id}")
-async def update_group(group_id: int, group_data: GroupCreate, request: Request, session: Session = Depends(get_session)):
-    user = request.session.get('user')
-    if not user:
-        return RedirectResponse(url='/users/login')
-
-    # Here you would add logic to update the group in the database
-    # For example:
-    statement = select(Group).where(
-        Group.id == group_id, Group.owner_id == user['id'])
-    group = session.exec(statement).first()
-    if group:
-        group.name = group_data.name
-        group.columns = group_data.columns
-        session.add(group)
-        session.commit()
-        session.refresh(group)
-        return {"message": "Group updated successfully"}
-    else:
-        return {"message": "Group not found or you do not have permission to update it"}
+    session.delete(group)
+    session.commit()
+    return {"ok": True}

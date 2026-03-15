@@ -1,12 +1,32 @@
 from fastapi import APIRouter, Request, Depends
 from starlette.responses import RedirectResponse
 from sqlmodel import Session, select
-
 from services.oauth_services import oauth
 from domain.users.entity import User
 from database import get_session
 
 router = APIRouter()
+
+
+@router.post("/test-login")
+async def test_login(request: Request, session: Session = Depends(get_session)):
+    """Test endpoint - logs in as a test user without Google OAuth"""
+    test_user = {
+        "id": "test-user-123",
+        "email": "test@example.com",
+        "name": "Test User",
+        "google_id": "test-google-id"
+    }
+    db_user = User(
+        google_id=test_user['google_id'],
+        name=test_user['name'],
+        email=test_user['email']
+    )
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+    request.session["user"] = db_user.dict()
+    return {"message": "Test login successful", "user": db_user.dict()}
 
 
 @router.get("/login")

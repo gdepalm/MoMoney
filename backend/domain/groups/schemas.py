@@ -1,6 +1,19 @@
-from pydantic import BaseModel, Field
+from sqlmodel import SQLModel
+from typing import Optional
 
 
-class GroupResponse(BaseModel):
-    name: str = Field(..., min_length=1)
-    columns: list[str]
+class GroupCreate(SQLModel):
+    name: str
+    columns: list[str] = []
+
+
+class GroupRead(SQLModel):
+    id: int
+    name: str
+    owner_id: int
+    columns: list[str] = []
+
+
+class GroupUpdate(SQLModel):
+    name: Optional[str] = None
+    columns: Optional[list[str]] = None
