@@ -1,0 +1,22 @@
+info:
+  name: Update Groups
+  type: http
+  seq: 7
+
+http:
+  method: PATCH
+  url: http://localhost:8000/groups/1
+  body:
+    type: json
+    data: |-
+      {
+        "name": "haiya",
+        "columns": ["arya"]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
