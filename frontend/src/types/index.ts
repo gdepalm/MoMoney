@@ -1,0 +1,59 @@
+export type ColumnType = "text" | "number" | "date" | "ai_extract";
+
+export interface Column {
+  id: string;
+  name: string;
+  type: ColumnType;
+  order: number;
+}
+
+export interface SpreadsheetRow {
+  id: string;
+  [colId: string]: string | number | null;
+}
+
+export interface Spreadsheet {
+  id: string;
+  name: string;
+  description?: string;
+  columns: Column[];
+  rows: SpreadsheetRow[];
+  rowCount: number;
+  columnCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SpreadsheetSummary {
+  id: string;
+  name: string;
+  description?: string;
+  rowCount: number;
+  columnCount: number;
+  updatedAt: string;
+  createdAt: string;
+}
+
+export interface ExtractedItem {
+  [colId: string]: string | number | null;
+}
+
+export interface AIPreviewData {
+  items: ExtractedItem[];
+  confidence: number;
+  rawText?: string;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+}
+
+export type UploadPhase =
+  | "drop"
+  | "processing"
+  | "preview"
+  | "confirming"
+  | "done";
