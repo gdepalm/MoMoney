@@ -6,7 +6,8 @@ import tempfile
 import os
 
 from app import app
-from database import get_session
+from services.dependencies.auth import get_current_user
+from services.dependencies.database import get_session
 from domain.users.entity import User
 # Import to register Group model with SQLModel metadata
 from domain.groups.entity import Group
@@ -70,7 +71,6 @@ def test_user_fixture() -> User:
 
 @pytest.fixture(name="authenticated_client")
 def authenticated_client_fixture(client: TestClient, test_user: User) -> Generator[TestClient, None, None]:
-    from domain.groups.routes import get_current_user
     # Override get_current_user to return the test user
 
     def override_get_current_user():

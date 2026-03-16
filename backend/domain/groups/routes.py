@@ -1,23 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
 from domain.groups.entity import Group
-from domain.groups.schemas import GroupCreate, GroupRead, GroupUpdate
+from domain.groups.schemas import GroupCreate, GroupRead, GroupReadWithInvoices, GroupUpdate
 from domain.users.entity import User
-from database import get_session
+from services.dependencies.auth import get_current_user
+from services.dependencies.database import get_session
 
 router = APIRouter()
-
-
-def get_current_user(request: Request, session: Session = Depends(get_session)) -> User:
-    user_info = request.session.get("user")
-    if not user_info or not user_info.get("id"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    user = session.get(User, user_info["id"])
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-    return user
 
 
 @router.post("/", response_model=GroupRead)
@@ -44,13 +35,18 @@ def read_groups(
     return session.exec(statement).all()
 
 
-@router.get("/{group_id}", response_model=GroupRead)
+@router.get("/{group_id}", response_model=GroupReadWithInvoices)
 def read_group(
     group_id: int,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    group = session.get(Group, group_id)
+    statement = (
+        select(Group)
+        .where(Group.id == group_id)
+        .options(selectinload(Group.invoices))
+    )
+    group = session.exec(statement).first()
     if not group:
         raise HTTPException(status_code=404, detail="Group not found")
     if group.owner_id != current_user.id:

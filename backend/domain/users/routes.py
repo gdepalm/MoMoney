@@ -2,8 +2,8 @@ from fastapi import APIRouter, Request, Depends
 from starlette.responses import RedirectResponse
 from sqlmodel import Session, select
 from services.oauth_services import oauth
+from services.dependencies.database import get_session
 from domain.users.entity import User
-from database import get_session
 
 router = APIRouter()
 
