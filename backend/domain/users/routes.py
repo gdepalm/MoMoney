@@ -12,19 +12,21 @@ router = APIRouter()
 async def test_login(request: Request, session: Session = Depends(get_session)):
     """Test endpoint - logs in as a test user without Google OAuth"""
     test_user = {
-        "id": "test-user-123",
+        "id": "test-user-1234",
         "email": "test@example.com",
         "name": "Test User",
-        "google_id": "test-google-id"
+        "google_id": "test-google-id-2"
     }
-    db_user = User(
-        google_id=test_user['google_id'],
-        name=test_user['name'],
-        email=test_user['email']
-    )
-    session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
+    # db_user = User(
+    #     google_id=test_user['google_id'],
+    #     name=test_user['name'],
+    #     email=test_user['email']
+    # )
+    # session.add(db_user)
+    # session.commit()
+    # session.refresh(db_user)
+    statement = select(User).where(User.google_id == test_user['google_id'])
+    db_user = session.exec(statement).first()
     request.session["user"] = db_user.dict()
     return {"message": "Test login successful", "user": db_user.dict()}
 

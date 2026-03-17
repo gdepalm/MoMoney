@@ -1,0 +1,20 @@
+info:
+  name: Create Invoice Extraction
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: http://localhost:8000/invoices/{{invoice_id}}/extractions
+  auth: inherit
+
+runtime:
+  variables:
+    - name: invoice_id
+      value: "1"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

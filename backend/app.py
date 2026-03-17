@@ -7,6 +7,7 @@ from sqlmodel import SQLModel
 from domain.users.routes import router as user_router
 from domain.groups.routes import router as group_router
 from domain.invoices.routes import router as invoice_router
+from domain.invoice_extractions.routes import router as invoice_extraction_router
 from services.dependencies.database import engine
 
 
@@ -40,3 +41,4 @@ def ping():
 app.include_router(user_router, tags=["users"])
 app.include_router(group_router, prefix="/groups", tags=["groups"])
 app.include_router(invoice_router, tags=["invoices"])
+app.include_router(invoice_extraction_router, tags=["invoice_extractions"])

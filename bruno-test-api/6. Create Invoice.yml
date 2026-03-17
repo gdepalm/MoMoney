@@ -1,0 +1,26 @@
+info:
+  name: Create Invoice
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: http://localhost:8000/groups/{{group_id}}/invoices
+  body:
+    type: json
+    data: |-
+      {
+        "data": {
+          "merchant": "Sewa Menyewa",
+          "total": 5000000,
+          "date": "2026-03-16"
+        },
+        "image_url": "https://spenmo.id/hs-fs/hubfs/Contoh%20invoice%20DP.png?width=1625&name=Contoh%20invoice%20DP.png"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

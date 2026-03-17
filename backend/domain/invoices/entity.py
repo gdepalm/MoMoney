@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any, TYPE_CHECKING
+from typing import Optional, List, Dict, Any, TYPE_CHECKING
 
 from sqlalchemy import JSON as SAJSON
 from sqlalchemy.dialects.postgresql import JSONB
@@ -8,6 +8,9 @@ from sqlmodel import Column, Field, SQLModel, Relationship
 
 if TYPE_CHECKING:
     from domain.groups.entity import Group
+
+if TYPE_CHECKING:
+    from domain.invoice_extractions.entity import InvoiceExtraction
 
 
 class InvoiceBase(SQLModel):
@@ -25,3 +28,4 @@ class Invoice(InvoiceBase, table=True):
         default_factory=lambda: datetime.now(timezone.utc))
 
     group: "Group" = Relationship(back_populates="invoices")
+    extractions: List["InvoiceExtraction"] = Relationship(back_populates="invoice")
