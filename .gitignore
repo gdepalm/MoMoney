@@ -4,3 +4,4 @@ client_secret*
 __pycache__/
 node_modules/
 dist/
+**/test.db
