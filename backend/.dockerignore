@@ -1,0 +1,19 @@
+# Send only runtime/backend build inputs to Docker daemon.
+**
+
+# Explicitly block local secrets.
+.env
+.env.*
+*.env
+client_secret*
+**/client_secret*
+
+!requirements.txt
+!app.py
+!database.py
+!domain/
+!domain/**
+!services/
+!services/**
+!Dockerfile
+!.dockerignore

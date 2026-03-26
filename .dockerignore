@@ -1,0 +1,6 @@
+.env*
+client_secret*
+.pytest_cache/
+__pycache__/
+node_modules/
+dist/
