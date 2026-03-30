@@ -58,3 +58,10 @@ export type UploadPhase =
   | "preview"
   | "confirming"
   | "done";
+
+export interface Group {
+  id: number;
+  name: string;
+  owner_id: number;
+  columns: string[];
+}

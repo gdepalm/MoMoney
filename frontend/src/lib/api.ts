@@ -1,5 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
-import { Invoice, InvoiceSummary, AIPreviewData, Column } from "@/types";
+import { Invoice, InvoiceSummary, AIPreviewData, Column, Group } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -38,7 +38,15 @@ export const authApi = {
 };
 
 export const groupsApi = {
-  list: (): Promise<any[]> => api.get("/groups/").then((r) => r.data),
+  list: (): Promise<Group[]> => api.get("/groups/").then((r) => r.data),
+  create: (payload: { name: string; columns?: string[] }): Promise<Group> =>
+    api.post("/groups/", payload).then((r) => r.data),
+  get: (id: number): Promise<Group & { invoices?: Invoice[] }> =>
+    api.get(`/groups/${id}`).then((r) => r.data),
+  update: (id: number, payload: { name?: string; columns?: string[] }): Promise<Group> =>
+    api.patch(`/groups/${id}`, payload).then((r) => r.data),
+  remove: (id: number): Promise<void> =>
+    api.delete(`/groups/${id}`).then((r) => r.data),
 };
 
 export const invoicesApi = {
@@ -52,8 +60,9 @@ export const invoicesApi = {
     });
   },
   update: (id: string, payload: Partial<Invoice>): Promise<Invoice> =>
-    api.patch(`/invoices/${id}`, payload).then((r) => r.data),
-  delete: (id: string): Promise<void>               => api.delete(`/invoices/${id}`).then((r) => r.data),
+    api.patch(`/invoices/invoices/${id}`, payload).then((r) => r.data),
+  delete: (id: string): Promise<void> =>
+    api.delete(`/invoices/invoices/${id}`).then((r) => r.data),
 };
 
 export const receiptApi = {
