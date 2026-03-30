@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Column, ColumnType } from "@/types";
-import { spreadsheetsApi } from "@/lib/api";
+import { invoicesApi } from "@/lib/api";
 import Icon from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
 
@@ -16,12 +16,12 @@ const TYPE_OPTIONS: { value: ColumnType; label: string; badge: string }[] = [
 interface Props {
   open: boolean;
   onClose: () => void;
-  spreadsheetId: string;
+  invoiceId: string;
   columns: Column[];
   onSaved: (cols: Column[]) => void;
 }
 
-export default function ColumnConfigModal({ open, onClose, spreadsheetId, columns, onSaved }: Props) {
+export default function ColumnConfigModal({ open, onClose, invoiceId, columns, onSaved }: Props) {
   const [local, setLocal] = useState<Omit<Column, "id">[]>(
     columns.map(({ name, type, order }) => ({ name, type, order }))
   );
@@ -39,8 +39,9 @@ export default function ColumnConfigModal({ open, onClose, spreadsheetId, column
     if (local.some((c) => !c.name.trim())) { setError("All columns need a name."); return; }
     setLoading(true); setError(null);
     try {
-      const saved = await spreadsheetsApi.updateColumns(spreadsheetId, local);
-      onSaved(saved);
+      const updatedColumns = local.map((col, idx) => ({ ...col, id: columns[idx].id }));
+      const saved = await invoicesApi.update(invoiceId, { columns: updatedColumns });
+      onSaved(saved.columns);
       onClose();
     } catch { setError("Failed to save columns."); }
     finally { setLoading(false); }

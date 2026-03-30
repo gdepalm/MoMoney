@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { User, SpreadsheetSummary, Spreadsheet, AIPreviewData, UploadPhase } from "@/types";
+import { User, InvoiceSummary, Invoice, AIPreviewData, UploadPhase } from "@/types";
 
 interface AppStore {
   // Auth
@@ -10,12 +10,20 @@ interface AppStore {
   setToken: (t: string | null) => void;
   logout: () => void;
 
-  // Spreadsheets
-  spreadsheets: SpreadsheetSummary[];
-  selectedSpreadsheet: Spreadsheet | null;
-  setSpreadsheets: (s: SpreadsheetSummary[]) => void;
-  setSelectedSpreadsheet: (s: Spreadsheet | null) => void;
-  addSpreadsheet: (s: SpreadsheetSummary) => void;
+  // Invoices
+  invoices: InvoiceSummary[];
+  selectedInvoice: Invoice | null;
+  setInvoices: (s: InvoiceSummary[]) => void;
+  setSelectedInvoice: (s: Invoice | null) => void;
+  addInvoice: (s: InvoiceSummary) => void;
+  removeInvoice: (id: string) => void;
+
+  // Backwards compatibility
+  spreadsheets: InvoiceSummary[];
+  selectedSpreadsheet: Invoice | null;
+  setSpreadsheets: (s: InvoiceSummary[]) => void;
+  setSelectedSpreadsheet: (s: Invoice | null) => void;
+  addSpreadsheet: (s: InvoiceSummary) => void;
   removeSpreadsheet: (id: string) => void;
 
   // Upload
@@ -52,13 +60,21 @@ export const useStore = create<AppStore>()(
         set({ user: null, token: null });
       },
 
-      // Spreadsheets
+      // Invoices
+      invoices: [],
+      selectedInvoice: null,
+      setInvoices: (invoices) => set({ invoices, spreadsheets: invoices }),
+      setSelectedInvoice: (selectedInvoice) => set({ selectedInvoice, selectedSpreadsheet: selectedInvoice }),
+      addInvoice: (s) => set((st) => { const newInvoices = [s, ...st.invoices]; return { invoices: newInvoices, spreadsheets: newInvoices }; }),
+      removeInvoice: (id) => set((st) => { const newInvoices = st.invoices.filter((s) => s.id !== id); return { invoices: newInvoices, spreadsheets: newInvoices }; }),
+
+      // Backwards compatibility
       spreadsheets: [],
       selectedSpreadsheet: null,
-      setSpreadsheets: (spreadsheets) => set({ spreadsheets }),
-      setSelectedSpreadsheet: (selectedSpreadsheet) => set({ selectedSpreadsheet }),
-      addSpreadsheet: (s) => set((st) => ({ spreadsheets: [s, ...st.spreadsheets] })),
-      removeSpreadsheet: (id) => set((st) => ({ spreadsheets: st.spreadsheets.filter((s) => s.id !== id) })),
+      setSpreadsheets: (spreadsheets) => set({ spreadsheets, invoices: spreadsheets }),
+      setSelectedSpreadsheet: (selectedSpreadsheet) => set({ selectedSpreadsheet, selectedInvoice: selectedSpreadsheet }),
+      addSpreadsheet: (s) => set((st) => { const newInvoices = [s, ...st.invoices]; return { invoices: newInvoices, spreadsheets: newInvoices }; }),
+      removeSpreadsheet: (id) => set((st) => { const newInvoices = st.invoices.filter((s) => s.id !== id); return { invoices: newInvoices, spreadsheets: newInvoices }; }),
 
       // Upload
       uploadPhase: "drop",

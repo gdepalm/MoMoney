@@ -1,6 +1,6 @@
-import { Column, SpreadsheetRow, SpreadsheetSummary, ExtractedItem } from "@/types";
+import { Column, InvoiceRow, InvoiceSummary, ExtractedItem } from "@/types";
 
-export const SAMPLE_SPREADSHEETS: SpreadsheetSummary[] = [
+export const SAMPLE_INVOICES: InvoiceSummary[] = [
   { id: "s1", name: "January Expenses",   description: "Office & travel receipts", rowCount: 24, columnCount: 5, updatedAt: "2025-01-28", createdAt: "2025-01-01" },
   { id: "s2", name: "Q1 Business Travel", description: "Hotels, flights, meals",   rowCount: 17, columnCount: 6, updatedAt: "2025-01-20", createdAt: "2025-01-01" },
   { id: "s3", name: "Marketing Budget",   description: "Ad spend & software",       rowCount: 8,  columnCount: 4, updatedAt: "2025-01-15", createdAt: "2025-01-01" },
@@ -15,7 +15,7 @@ export const SAMPLE_COLUMNS: Column[] = [
   { id: "c5", name: "Notes",    type: "text",       order: 4 },
 ];
 
-export const SAMPLE_ROWS: SpreadsheetRow[] = [
+export const SAMPLE_ROWS: InvoiceRow[] = [
   { id: "r1", c1: "Jan 12, 2025", c2: "Whole Foods Market",  c3: "Groceries",      c4: "$84.32",  c5: "Team lunch supplies"    },
   { id: "r2", c1: "Jan 13, 2025", c2: "Shell Gas Station",   c3: "Transportation", c4: "$62.10",  c5: "Client visit fuel"      },
   { id: "r3", c1: "Jan 15, 2025", c2: "Office Depot",        c3: "Office Supplies",c4: "$124.89", c5: "Printer paper & toner"  },

@@ -1,20 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Column, SpreadsheetRow } from "@/types";
-import { spreadsheetsApi } from "@/lib/api";
+import { Column, InvoiceRow } from "@/types";
+import { invoicesApi } from "@/lib/api";
 import { COLUMN_TYPE_BADGE } from "@/lib/data";
 import Icon from "@/components/ui/Icon";
 import { cn } from "@/lib/utils";
 
 interface Props {
-  spreadsheetId: string;
+  invoiceId: string;
   columns: Column[];
-  rows: SpreadsheetRow[];
-  onRowsChange: (rows: SpreadsheetRow[]) => void;
+  rows: InvoiceRow[];
+  onRowsChange: (rows: InvoiceRow[]) => void;
 }
 
-export default function SpreadsheetTable({ spreadsheetId, columns, rows, onRowsChange }: Props) {
+export default function InvoiceTable({ invoiceId, columns, rows, onRowsChange }: Props) {
   const [editCell, setEditCell] = useState<string | null>(null);
   const [editVal, setEditVal] = useState("");
 
@@ -27,7 +27,7 @@ export default function SpreadsheetTable({ spreadsheetId, columns, rows, onRowsC
     const updated = rows.map((r) => r.id === rowId ? { ...r, [colId]: editVal } : r);
     onRowsChange(updated);
     setEditCell(null);
-    try { await spreadsheetsApi.updateRow(spreadsheetId, rowId, { [colId]: editVal }); }
+    try { await invoicesApi.update(invoiceId, { [rowId]: { [colId]: editVal } }); }
     catch { onRowsChange(rows); }
   };
 

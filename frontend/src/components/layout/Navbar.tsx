@@ -21,7 +21,12 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    try { await authApi.logout(); } catch {}
+    try { 
+      await authApi.logout(); 
+    } catch (error) {
+      console.error("Logout API call failed:", error);
+      // Continue with local logout even if API call fails
+    }
     logout();
     router.push("/login");
   };

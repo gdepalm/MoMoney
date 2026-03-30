@@ -3,19 +3,21 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
-import { spreadsheetsApi } from "@/lib/api";
-import { Spreadsheet, Column, SpreadsheetRow } from "@/types";
+import { invoicesApi } from "@/lib/api";
+import { Invoice, Column, InvoiceRow } from "@/types";
 import AppShell from "@/components/layout/Appshell";
-import SpreadsheetTable from "@/components/spreadsheet/SpreadsheetTable";
+import InvoiceTable from "@/components/invoice/InvoiceTable";
 import ColumnConfigModal from "@/components/modals/ColumnConfigModal";
 import Icon from "@/components/ui/Icon";
 
-export default function SpreadsheetPage() {
+export const dynamic = 'force-dynamic';
+
+export default function InvoicePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { user, setSelectedSpreadsheet } = useStore();
+  const { user, setSelectedInvoice } = useStore();
 
-  const [sheet, setSheet] = useState<Spreadsheet | null>(null);
+  const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showColConfig, setShowColConfig] = useState(false);
@@ -27,18 +29,34 @@ export default function SpreadsheetPage() {
 
   const load = () => {
     setLoading(true); setError(null);
-    spreadsheetsApi.get(id)
-      .then((s) => { setSheet(s); setSelectedSpreadsheet(s); })
-      .catch(() => setError("Failed to load spreadsheet."))
+    invoicesApi.get(id)
+      .then((s) => {
+        // Transform backend response to frontend Invoice format
+        const invoice: Invoice = {
+          data: s.data,
+          id: String(s.id),
+          name: s.data?.name || `Invoice #${s.id}`,
+          description: s.data?.description,
+          columns: [],
+          rows: [],
+          rowCount: 0,
+          columnCount: 0,
+          createdAt: s.createdAt,
+          updatedAt: s.createdAt,
+        };
+        setInvoice(invoice);
+        setSelectedInvoice(invoice);
+      })
+      .catch(() => setError("Failed to load invoice."))
       .finally(() => setLoading(false));
   };
 
-  const handleRowsChange = (rows: SpreadsheetRow[]) => {
-    if (sheet) setSheet({ ...sheet, rows });
+  const handleRowsChange = (rows: InvoiceRow[]) => {
+    if (invoice) setInvoice({ ...invoice, rows });
   };
 
   const handleColumnsSaved = (columns: Column[]) => {
-    if (sheet) setSheet({ ...sheet, columns });
+    if (invoice) setInvoice({ ...invoice, columns });
   };
 
   return (
@@ -53,7 +71,7 @@ export default function SpreadsheetPage() {
             <p className="text-[13px] text-red-600 mb-3">{error}</p>
             <button onClick={load} className="text-[13px] text-red-700 underline">Retry</button>
           </div>
-        ) : sheet ? (
+        ) : invoice ? (
           <>
             {/* Back */}
             <button onClick={() => router.push("/dashboard")}
@@ -65,10 +83,10 @@ export default function SpreadsheetPage() {
             {/* Header */}
             <div className="flex items-start justify-between mb-6">
               <div>
-                <h1 className="text-[22px] font-bold text-slate-900 tracking-tight">{sheet.name}</h1>
-                {sheet.description && <p className="text-[13px] text-slate-400 mt-1">{sheet.description}</p>}
+                <h1 className="text-[22px] font-bold text-slate-900 tracking-tight">{invoice.name}</h1>
+                {invoice.description && <p className="text-[13px] text-slate-400 mt-1">{invoice.description}</p>}
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <button onClick={load}
                   className="flex items-center gap-2 px-3 py-2 border border-slate-200 bg-white rounded-xl text-[13px] font-medium text-slate-600 hover:bg-slate-50 transition-colors">
                   <Icon name="rows" size={14} />
@@ -90,9 +108,9 @@ export default function SpreadsheetPage() {
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">
               {[
-                { label: "Total Rows",   value: sheet.rows.length },
-                { label: "Columns",      value: sheet.columns.length },
-                { label: "Last Updated", value: new Date(sheet.updatedAt).toLocaleDateString() },
+                { label: "Total Rows",   value: invoice.rows.length },
+                { label: "Columns",      value: invoice.columns.length },
+                { label: "Last Updated", value: new Date(invoice.updatedAt).toLocaleDateString() },
               ].map((s) => (
                 <div key={s.label} className="bg-white border border-slate-200 rounded-2xl px-5 py-4 shadow-sm">
                   <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">{s.label}</p>
@@ -102,18 +120,18 @@ export default function SpreadsheetPage() {
             </div>
 
             {/* Table */}
-            <SpreadsheetTable
-              spreadsheetId={sheet.id}
-              columns={sheet.columns}
-              rows={sheet.rows}
+            <InvoiceTable
+              invoiceId={invoice.id}
+              columns={invoice.columns}
+              rows={invoice.rows}
               onRowsChange={handleRowsChange}
             />
 
             <ColumnConfigModal
               open={showColConfig}
               onClose={() => setShowColConfig(false)}
-              spreadsheetId={sheet.id}
-              columns={sheet.columns}
+              invoiceId={invoice.id}
+              columns={invoice.columns}
               onSaved={handleColumnsSaved}
             />
           </>

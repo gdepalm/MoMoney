@@ -2,6 +2,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 import json
+import base64
 
 load_dotenv()
 
@@ -12,10 +13,8 @@ client = OpenAI(
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 )
 
-def extract_invoice_from_image(image_url: str, model: str = "gemini-2.5-flash"):
-
-    image_base64 = encode_image_url(image_url)
-
+def _extract_invoice_data(image_base64: str, model: str = "gemini-2.5-flash") -> dict:
+    """Common extraction logic for invoice images"""
     response = client.chat.completions.create(
         model=model,
         messages=[
@@ -50,6 +49,15 @@ def extract_invoice_from_image(image_url: str, model: str = "gemini-2.5-flash"):
     cleaned = raw_content.replace("```json", "").replace("```", "").strip()
 
     return json.loads(cleaned)
+
+def extract_invoice_from_image(image_url: str, model: str = "gemini-2.5-flash"):
+    image_base64 = encode_image_url(image_url)
+    return _extract_invoice_data(image_base64, model)
+
+def extract_invoice_from_bytes(image_bytes: bytes, model: str = "gemini-2.5-flash") -> dict:
+    """Extract invoice data from uploaded file bytes"""
+    image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+    return _extract_invoice_data(image_base64, model)
 
 def add_images(image_paths):
     pass

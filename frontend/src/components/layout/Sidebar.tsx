@@ -12,7 +12,7 @@ interface SidebarProps {
 export default function Sidebar({ onCreateNew }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { spreadsheets } = useStore();
+  const { invoices } = useStore();
 
   return (
     <aside className="w-[220px] bg-white border-r border-slate-200 flex-shrink-0 overflow-y-auto flex flex-col">
@@ -34,31 +34,31 @@ export default function Sidebar({ onCreateNew }: SidebarProps) {
 
       <div className="h-px bg-slate-100 mx-3" />
 
-      {/* Spreadsheets */}
+      {/* Invoices */}
       <div className="p-3 pt-3">
         <div className="flex items-center justify-between px-2 mb-2">
           <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-            Spreadsheets
+            Invoices
           </span>
           <button
             onClick={onCreateNew}
             className="w-5 h-5 flex items-center justify-center rounded text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors"
-            title="New spreadsheet"
+            title="New invoice"
           >
             <Icon name="plus" size={12} />
           </button>
         </div>
 
         <div className="space-y-0.5">
-          {spreadsheets.length === 0 ? (
-            <p className="text-[12px] text-slate-400 px-3 py-2">No spreadsheets yet</p>
+          {invoices.length === 0 ? (
+            <p className="text-[12px] text-slate-400 px-3 py-2">No invoices yet</p>
           ) : (
-            spreadsheets.slice(0, 30).map((sheet) => {
-              const active = pathname === `/spreadsheet/${sheet.id}`;
+            invoices.slice(0, 30).map((sheet) => {
+              const active = pathname === `/invoice/${sheet.id}`;
               return (
                 <button
                   key={sheet.id}
-                  onClick={() => router.push(`/spreadsheet/${sheet.id}`)}
+                  onClick={() => router.push(`/invoice/${sheet.id}`)}
                   className={cn(
                     "w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12.5px] font-medium transition-colors text-left",
                     active

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
-import CreateSpreadsheetModal from "@/components/modals/CreateSpreadsheetModal";
+import CreateInvoiceModal from "@/components/modals/CreateSpreadsheetModal";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [showCreate, setShowCreate] = useState(false);
@@ -17,7 +17,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
-      <CreateSpreadsheetModal open={showCreate} onClose={() => setShowCreate(false)} />
+      <CreateInvoiceModal open={showCreate} onClose={() => setShowCreate(false)} />
     </div>
   );
 }

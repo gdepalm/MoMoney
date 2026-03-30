@@ -3,31 +3,84 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
-import { spreadsheetsApi } from "@/lib/api";
-import { SpreadsheetSummary } from "@/types";
+import { invoicesApi } from "@/lib/api";
+import { InvoiceSummary } from "@/types";
 import AppShell from "@/components/layout/Appshell";
 import Icon from "@/components/ui/Icon";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, spreadsheets, setSpreadsheets, removeSpreadsheet } = useStore();
+  const { user, invoices, setInvoices, removeInvoice, setUser } = useStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
 
   useEffect(() => {
-    if (!user) { router.replace("/login"); return; }
-    spreadsheetsApi.list()
-      .then(setSpreadsheets)
-      .catch(() => setError("Failed to load spreadsheets."))
-      .finally(() => setLoading(false));
-  }, [user, router, setSpreadsheets]);
+    // Wait a bit for AuthProvider to restore session, then verify auth
+    const timer = setTimeout(async () => {
+      if (!user) {
+        // Try to restore auth from session
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/`, {
+            credentials: "include",
+          });
+          if (response.ok) {
+            const data = await response.json();
+            const userData = data.user || data;
+            if (userData?.email) {
+              setUser(userData);
+              setIsAuthChecking(false);
+              return;
+            }
+          }
+        } catch (err) {
+          console.error("Failed to restore auth:", err);
+        }
+        // No auth, redirect to login
+        router.replace("/login");
+      } else {
+        setIsAuthChecking(false);
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [user, router, setUser]);
+
+  useEffect(() => {
+    if (isAuthChecking) {
+      return; // Wait for auth check
+    }
+
+    // Load invoices once we know user is authenticated
+    if (user) {
+      invoicesApi.list()
+        .then((invoices) => {
+          // Transform backend InvoiceRead to InvoiceSummary
+          const summaries = invoices.map((inv) => ({
+            id: String(inv.id),
+            name: inv.data?.name || `Invoice #${inv.id}`,
+            description: inv.data?.description,
+            rowCount: 0,
+            columnCount: 0,
+            createdAt: inv.created_at,
+            updatedAt: inv.created_at,
+          }));
+          setInvoices(summaries);
+        })
+        .catch((err) => {
+          console.error("Failed to load invoices:", err);
+          setError("Failed to load invoices.");
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [user, isAuthChecking, setInvoices]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this spreadsheet? This cannot be undone.")) return;
+    if (!confirm("Delete this invoice? This cannot be undone.")) return;
     try {
-      await spreadsheetsApi.delete(id);
-      removeSpreadsheet(id);
+      await invoicesApi.delete(id);
+      removeInvoice(id);
     } catch { alert("Failed to delete."); }
     setMenuOpen(null);
   };
@@ -40,7 +93,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-[22px] font-bold text-slate-900 tracking-tight">Dashboard</h1>
             <p className="text-[13px] text-slate-400 mt-1">
-              {spreadsheets.length} spreadsheet{spreadsheets.length !== 1 ? "s" : ""}
+              {invoices.length} invoice{invoices.length !== 1 ? "s" : ""}
             </p>
           </div>
         </div>
@@ -55,22 +108,22 @@ export default function DashboardPage() {
             <p className="text-[13px] text-red-600 mb-3">{error}</p>
             <button onClick={() => window.location.reload()} className="text-[13px] text-red-700 underline">Retry</button>
           </div>
-        ) : spreadsheets.length === 0 ? (
+        ) : invoices.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-2xl p-16 text-center shadow-sm">
             <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Icon name="fileText" size={24} stroke={1.5} className="text-slate-400" />
             </div>
-            <h3 className="text-[15px] font-bold text-slate-700 mb-2">No spreadsheets yet</h3>
-            <p className="text-[13px] text-slate-400 mb-6">Create your first spreadsheet to start organizing receipt data.</p>
+            <h3 className="text-[15px] font-bold text-slate-700 mb-2">No invoices yet</h3>
+            <p className="text-[13px] text-slate-400 mb-6">Create your first invoice to start organizing receipt data.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {spreadsheets.map((sheet: SpreadsheetSummary, idx: number) => (
-              <SheetCard
+            {invoices.map((sheet: InvoiceSummary, idx: number) => (
+              <InvoiceCard
                 key={sheet.id}
-                sheet={sheet}
+                invoice={sheet}
                 menuOpen={menuOpen === sheet.id}
-                onOpen={() => router.push(`/spreadsheet/${sheet.id}`)}
+                onOpen={() => router.push(`/invoice/${sheet.id}`)}
                 onMenuToggle={() => setMenuOpen(menuOpen === sheet.id ? null : sheet.id)}
                 onDelete={() => handleDelete(sheet.id)}
                 style={{ animationDelay: `${idx * 0.04}s` }}
@@ -83,8 +136,8 @@ export default function DashboardPage() {
   );
 }
 
-function SheetCard({ sheet, menuOpen, onOpen, onMenuToggle, onDelete, style }: {
-  sheet: SpreadsheetSummary;
+function InvoiceCard({ invoice, menuOpen, onOpen, onMenuToggle, onDelete, style }: {
+  invoice: InvoiceSummary;
   menuOpen: boolean;
   onOpen: () => void;
   onMenuToggle: () => void;
@@ -117,15 +170,15 @@ function SheetCard({ sheet, menuOpen, onOpen, onMenuToggle, onDelete, style }: {
         </div>
       </div>
 
-      <h3 className="font-bold text-[14px] text-slate-900 tracking-tight mb-1 truncate">{sheet.name}</h3>
-      <p className="text-[12px] text-slate-400 line-clamp-2 min-h-[16px]">{sheet.description ?? ""}</p>
+      <h3 className="font-bold text-[14px] text-slate-900 tracking-tight mb-1 truncate">{invoice.name}</h3>
+      <p className="text-[12px] text-slate-400 line-clamp-2 min-h-[16px]">{invoice.description ?? ""}</p>
 
       <div className="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100">
         <span className="flex items-center gap-1 text-[11px] text-slate-400">
-          <Icon name="rows" size={11} />{sheet.rowCount} rows
+          <Icon name="rows" size={11} />{invoice.rowCount} rows
         </span>
         <span className="flex items-center gap-1 text-[11px] text-slate-400">
-          <Icon name="calendar" size={11} />{sheet.updatedAt}
+          <Icon name="calendar" size={11} />{invoice.updatedAt}
         </span>
       </div>
     </div>

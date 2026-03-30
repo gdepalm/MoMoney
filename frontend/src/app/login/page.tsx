@@ -1,38 +1,49 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authApi } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import Icon from "@/components/ui/Icon";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const params = useSearchParams();
-  const { user, setUser, setToken } = useStore();
+  const { user, setUser, setToken, token } = useStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) { router.replace("/dashboard"); return; }
-
-    // Handle OAuth redirect callback: /login?token=<jwt>
-    const token = params.get("token");
-    if (token) {
-      setLoading(true);
-      setToken(token);
-      authApi.getMe()
-        .then((u) => { setUser(u); router.replace("/dashboard"); })
-        .catch(() => { setToken(null); setError("Authentication failed. Please try again."); })
-        .finally(() => setLoading(false));
+    if (user) { 
+      router.replace("/dashboard"); 
+      return; 
     }
 
-    const err = params.get("error");
-    if (err) setError("Google sign-in was cancelled or failed. Please try again.");
-  }, [params, user, router, setUser, setToken]);
+    // Try to restore session from cookies if already authenticated
+    const restoreSession = async () => {
+      try {
+        const response = await authApi.getUser();
+        if (response?.email) {
+          setUser(response);
+          router.replace("/dashboard");
+        }
+      } catch (err) {
+        // Session may have expired or user not authenticated
+        const urlError = params.get("error");
+        if (urlError) {
+          setError("Google sign-in was cancelled or failed. Please try again.");
+        }
+      }
+    };
+
+    if (!token) {
+      restoreSession();
+    }
+  }, [params, user, router, setUser, token]);
 
   const handleGoogle = () => {
     setLoading(true);
+    // This redirects to the backend OAuth endpoint
     authApi.googleLogin();
   };
 
@@ -44,7 +55,7 @@ export default function LoginPage() {
           <Icon name="scan" size={24} stroke={2} className="text-white" />
         </div>
         <h1 className="text-[22px] font-bold text-slate-900 tracking-tight">Welcome to ReceiptAI</h1>
-        <p className="text-[13px] text-slate-400 mt-1.5">Sign in to manage your receipt spreadsheets</p>
+        <p className="text-[13px] text-slate-400 mt-1.5">Sign in to manage your receipt invoices</p>
       </div>
 
       {/* Card */}
@@ -79,5 +90,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="w-6 h-6 border-2 border-slate-200 border-t-emerald-600 rounded-full animate-spin" /></div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

@@ -1,8 +1,10 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
-import { Spreadsheet, SpreadsheetSummary, AIPreviewData, Column } from "@/types";
+import { Invoice, InvoiceSummary, AIPreviewData, Column } from "@/types";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
+  baseURL: API_URL,
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
 });
@@ -27,40 +29,45 @@ api.interceptors.response.use(
 );
 
 export const authApi = {
-  googleLogin: () => { window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`; },
-  getMe: ()    => api.get("/auth/me").then((r) => r.data),
-  logout: ()   => api.post("/auth/logout").then((r) => r.data),
+  googleLogin: () => { window.location.href = `${API_URL}/auth/google`; },
+  getUser: () => api.get("/users/").then((r) => {
+    // Handle both direct user object and nested user object
+    return r.data.user || r.data;
+  }).catch(() => null),
+  logout: () => api.post("/auth/logout").then((r) => r.data).catch(() => null),
 };
 
-export const spreadsheetsApi = {
-  list:   (): Promise<SpreadsheetSummary[]>         => api.get("/spreadsheets").then((r) => r.data),
-  get:    (id: string): Promise<Spreadsheet>        => api.get(`/spreadsheets/${id}`).then((r) => r.data),
-  create: (data: { name: string; description?: string }): Promise<Spreadsheet> =>
-    api.post("/spreadsheets", data).then((r) => r.data),
-  update: (id: string, data: Partial<Spreadsheet>): Promise<Spreadsheet> =>
-    api.put(`/spreadsheets/${id}`, data).then((r) => r.data),
-  delete: (id: string): Promise<void>               => api.delete(`/spreadsheets/${id}`).then((r) => r.data),
-  updateColumns: (id: string, columns: Omit<Column, "id">[]): Promise<Column[]> =>
-    api.put(`/spreadsheets/${id}/columns`, { columns }).then((r) => r.data),
-  updateRow: (sheetId: string, rowId: string, data: Record<string, string | number | null>) =>
-    api.put(`/spreadsheets/${sheetId}/rows/${rowId}`, data).then((r) => r.data),
-  deleteRow: (sheetId: string, rowId: string) =>
-    api.delete(`/spreadsheets/${sheetId}/rows/${rowId}`).then((r) => r.data),
+export const groupsApi = {
+  list: (): Promise<any[]> => api.get("/groups/").then((r) => r.data),
+};
+
+export const invoicesApi = {
+  list:   (): Promise<InvoiceSummary[]>         => api.get("/invoices/").then((r) => r.data),
+  get:    (id: string): Promise<Invoice>        => api.get(`/invoices/${id}`).then((r) => r.data),
+  create: (payload: { groupId?: number; name?: string; description?: string; data?: Record<string, any>; image_url?: string }): Promise<Invoice> => {
+    return (payload.groupId ? Promise.resolve(payload.groupId) : groupsApi.list().then(groups => groups[0]?.id)).then(groupId => {
+      if (!groupId) throw new Error("No groups available. Please create a group first.");
+      const data = payload.data || { name: payload.name, description: payload.description };
+      return api.post(`/invoices/groups/${groupId}/invoices`, { data, image_url: payload.image_url }).then((r) => r.data);
+    });
+  },
+  update: (id: string, payload: Partial<Invoice>): Promise<Invoice> =>
+    api.patch(`/invoices/${id}`, payload).then((r) => r.data),
+  delete: (id: string): Promise<void>               => api.delete(`/invoices/${id}`).then((r) => r.data),
 };
 
 export const receiptApi = {
-  upload: (spreadsheetId: string, file: File): Promise<{ jobId: string; preview: AIPreviewData }> => {
+  upload: (invoiceId: string, file: File): Promise<{ jobId: string; preview: AIPreviewData }> => {
     const fd = new FormData();
     fd.append("file", file);
-    fd.append("spreadsheetId", spreadsheetId);
-    return api.post("/upload-receipt", fd, { headers: { "Content-Type": "multipart/form-data" } }).then((r) => r.data);
+    return api.post(`/invoices/${invoiceId}/upload-receipt`, fd, { headers: { "Content-Type": "multipart/form-data" } }).then((r) => r.data);
   },
   insertToSheet: (
-    spreadsheetId: string,
+    invoiceId: string,
     jobId: string,
     items: Record<string, string | number | null>[]
   ): Promise<{ success: boolean; insertedRows: number }> =>
-    api.post("/insert-to-sheet", { spreadsheetId, jobId, items }).then((r) => r.data),
+    api.post(`/invoices/${invoiceId}/insert-to-sheet`, { items }).then((r) => r.data),
 };
 
 export default api;

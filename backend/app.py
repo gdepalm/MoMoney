@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import os
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from sqlmodel import SQLModel
 
 from domain.users.routes import router as user_router
@@ -23,7 +24,17 @@ async def lifespan(app: FastAPI):
     # on shutdown
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, redirect_slashes=True)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:8000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.add_middleware(SessionMiddleware,
                    secret_key=os.getenv("SESSION_SECRET_KEY", "a_secret_key"))
 
@@ -40,5 +51,5 @@ def ping():
 
 app.include_router(user_router, tags=["users"])
 app.include_router(group_router, prefix="/groups", tags=["groups"])
-app.include_router(invoice_router, tags=["invoices"])
+app.include_router(invoice_router, prefix="/invoices", tags=["invoices"])
 app.include_router(invoice_extraction_router, tags=["invoice_extractions"])
