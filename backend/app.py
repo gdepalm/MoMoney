@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import os
+import sys
+from pathlib import Path
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from sqlmodel import SQLModel
@@ -10,6 +12,9 @@ from domain.groups.routes import router as group_router
 from domain.invoices.routes import router as invoice_router
 from domain.invoice_extractions.routes import router as invoice_extraction_router
 from services.dependencies.database import engine
+
+file = Path(__file__).resolve()
+sys.path.append(str(file.parents[0]))
 
 
 def create_db_and_tables():
