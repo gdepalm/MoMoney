@@ -1,20 +1,22 @@
 
+import os
+import sys
+
+path = os.path.abspath(os.path.dirname(__file__))
+if path not in sys.path:
+    sys.path.insert(0, path)
+
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.cors import CORSMiddleware
+from sqlmodel import SQLModel
+
 from domain.users.routes import router as user_router
 from domain.groups.routes import router as group_router
 from domain.invoices.routes import router as invoice_router
 from domain.invoice_extractions.routes import router as invoice_extraction_router
 from services.dependencies.database import engine
-import os
-import sys
-from starlette.middleware.sessions import SessionMiddleware
-from starlette.middleware.cors import CORSMiddleware
-from sqlmodel import SQLModel
-
-path = os.path.abspath(os.path.dirname(__file__))
-if path not in sys.path:
-    sys.path.insert(0, path)
 
 
 def create_db_and_tables():
