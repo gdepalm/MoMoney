@@ -1,13 +1,6 @@
-
 import os
-import sys
-
-path = os.path.abspath(os.path.dirname(__file__))
-if path not in sys.path:
-    sys.path.insert(0, path)
-
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from sqlmodel import SQLModel
@@ -36,8 +29,7 @@ app = FastAPI(lifespan=lifespan, redirect_slashes=True)
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000",
-                   "http://localhost:8000", "https://gdepalm.github.io/MoMoney/"],
+    allow_origins=["http://localhost:3000", "http://localhost:8000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
