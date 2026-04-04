@@ -2,7 +2,6 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import SQLModel, create_engine, Session
 from typing import Generator
-import tempfile
 import os
 
 from app import app
@@ -12,10 +11,8 @@ from domain.users.entity import User
 # Import to register Group model with SQLModel metadata
 from domain.groups.entity import Group
 
-# Use a temporary file-based SQLite database for testing
-# This is more reliable than in-memory for multi-connection scenarios
-test_db_dir = tempfile.mkdtemp()
-test_db_file = os.path.join(test_db_dir, "test.db")
+# Store test database in backend/tests/test.db
+test_db_file = os.path.join(os.path.dirname(__file__), "test.db")
 DATABASE_URL = f"sqlite:///{test_db_file}"
 engine = create_engine(
     DATABASE_URL,

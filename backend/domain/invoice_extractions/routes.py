@@ -1,6 +1,7 @@
 import os
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlmodel import Session, select, delete
+from typing import Optional
 
 from domain.groups.entity import Group
 from domain.invoices.entity import Invoice
@@ -12,15 +13,16 @@ from domain.users.entity import User
 
 from services.dependencies.auth import get_current_user
 from services.dependencies.database import get_session
-from services.gemini_services import extract_invoice_from_image
+from services.gemini_services import extract_invoice_from_image, extract_invoice_from_bytes
 
 
 router = APIRouter()
 
 
 @router.post("/invoices/{invoice_id}/extractions", response_model=InvoiceExtractionRead)
-def create_invoice_extraction(
+async def create_invoice_extraction(
     invoice_id: int,
+    file: Optional[UploadFile] = File(None),
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
@@ -35,8 +37,19 @@ def create_invoice_extraction(
     if group.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
-    model = os.getenv("LLM_MODEL")
-    extracted = extract_invoice_from_image(invoice.image_url, model)
+    model = os.getenv("LLM_MODEL", "gemini-2.5-flash")
+    
+    # Extract from uploaded file or invoice's image URL
+    try:
+        if file:
+            contents = await file.read()
+            extracted = extract_invoice_from_bytes(contents, model)
+        else:
+            if not invoice.image_url:
+                raise HTTPException(status_code=400, detail="No image provided or found in invoice")
+            extracted = extract_invoice_from_image(invoice.image_url, model)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
     session.exec(
         delete(InvoiceExtraction).where(

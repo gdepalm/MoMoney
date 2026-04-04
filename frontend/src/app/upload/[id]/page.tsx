@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
-import { spreadsheetsApi, receiptApi } from "@/lib/api";
-import { Spreadsheet, ExtractedItem } from "@/types";
+import { invoicesApi, receiptApi } from "@/lib/api";
+import { Invoice, ExtractedItem } from "@/types";
 import { SAMPLE_COLUMNS, EXTRACTED_PREVIEW } from "@/lib/data";
 import AppShell from "@/components/layout/Appshell";
 import UploadDropzone from "@/components/upload/UploadDropzone";
@@ -13,6 +13,8 @@ import AIProcessing from "@/components/upload/AIProcessing";
 import ReceiptPreview from "@/components/upload/ReceiptPreview";
 import Icon from "@/components/ui/Icon";
 
+export const dynamic = 'force-dynamic';
+
 export default function UploadPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -20,14 +22,28 @@ export default function UploadPage() {
     uploadError, setUploadPhase, setUploadedFile, setUploadedImageUrl,
     setJobId, setAiPreviewData, setUploadError, resetUpload } = useStore();
 
-  const [sheet, setSheet] = useState<Spreadsheet | null>(null);
+  const [sheet, setSheet] = useState<Invoice | null>(null);
   const [sheetLoading, setSheetLoading] = useState(true);
   const [confirmLoading, setConfirmLoading] = useState(false);
 
   useEffect(() => {
     if (!user) { router.replace("/login"); return; }
     resetUpload();
-    spreadsheetsApi.get(id).then(setSheet).finally(() => setSheetLoading(false));
+    invoicesApi.get(id).then((s) => {
+      // Transform backend response to frontend Invoice format
+      const invoice: Invoice = {
+        id: String(s.id),
+        name: s.data?.name || `Invoice #${s.id}`,
+        description: s.data?.description,
+        columns: [],
+        rows: [],
+        rowCount: 0,
+        columnCount: 0,
+        createdAt: s.created_at,
+        updatedAt: s.created_at,
+      };
+      setSheet(invoice);
+    }).finally(() => setSheetLoading(false));
   }, [id, user]);
 
   const handleFile = (file: File) => {
@@ -78,9 +94,9 @@ export default function UploadPage() {
             <strong className="text-slate-700">{sheet?.name}</strong>.
           </p>
           <div className="flex flex-col gap-3">
-            <button onClick={() => router.push(`/spreadsheet/${id}`)}
+            <button onClick={() => router.push(`/invoice/${id}`)}
               className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[13px] font-semibold transition-colors">
-              View Spreadsheet <Icon name="arrowRight" size={15} />
+              View Invoice <Icon name="arrowRight" size={15} />
             </button>
             <button onClick={resetUpload}
               className="px-6 py-3 border border-slate-200 text-slate-600 rounded-xl text-[13px] font-medium hover:bg-slate-50 transition-colors">
@@ -92,7 +108,7 @@ export default function UploadPage() {
     </AppShell>
   );
 
-  // ── Columns for the spreadsheet (fall back to sample) ───────────────────────
+  // ── Columns for the invoice (fall back to sample) ───────────────────────
   const columns = sheet?.columns ?? SAMPLE_COLUMNS;
 
   // ── Preview data: real AI data or sample fallback ────────────────────────────
@@ -103,16 +119,16 @@ export default function UploadPage() {
     <AppShell>
       <div className="p-8 max-w-2xl mx-auto">
         {/* Back */}
-        <button onClick={() => router.push(`/spreadsheet/${id}`)}
+        <button onClick={() => router.push(`/invoice/${id}`)}
           className="flex items-center gap-1.5 text-[13px] font-medium text-slate-400 hover:text-slate-600 transition-colors mb-4">
           <Icon name="arrowLeft" size={14} />
-          Back to {sheetLoading ? "Spreadsheet" : (sheet?.name ?? "Spreadsheet")}
+          Back to {sheetLoading ? "Invoice" : (sheet?.name ?? "Invoice")}
         </button>
 
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-[22px] font-bold text-slate-900 tracking-tight">Upload Receipt</h1>
-          <p className="text-[13px] text-slate-400 mt-1">Extract data with AI and insert into spreadsheet</p>
+          <p className="text-[13px] text-slate-400 mt-1">Extract data with AI and insert into invoice</p>
         </div>
 
         {/* Steps */}

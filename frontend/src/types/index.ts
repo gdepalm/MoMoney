@@ -7,24 +7,25 @@ export interface Column {
   order: number;
 }
 
-export interface SpreadsheetRow {
+export interface InvoiceRow {
   id: string;
   [colId: string]: string | number | null;
 }
 
-export interface Spreadsheet {
+export interface Invoice {
+  data: any;
   id: string;
   name: string;
   description?: string;
   columns: Column[];
-  rows: SpreadsheetRow[];
+  rows: InvoiceRow[];
   rowCount: number;
   columnCount: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface SpreadsheetSummary {
+export interface InvoiceSummary {
   id: string;
   name: string;
   description?: string;
@@ -57,3 +58,17 @@ export type UploadPhase =
   | "preview"
   | "confirming"
   | "done";
+
+export interface Group {
+  id: number;
+  name: string;
+  owner_id: number;
+  columns: string[];
+}
+
+export interface Group {
+  id: number;
+  name: string;
+  owner_id: number;
+  columns: string[];
+}
