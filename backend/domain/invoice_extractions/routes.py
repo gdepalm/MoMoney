@@ -43,7 +43,7 @@ async def create_invoice_extraction(
     try:
         if file:
             contents = await file.read()
-            extracted = extract_invoice_from_bytes(contents, model)
+            extracted = extract_invoice_from_bytes(contents, group.columns, model)
         else:
             if not invoice.image_url:
                 raise HTTPException(status_code=400, detail="No image provided or found in invoice")

@@ -1,5 +1,6 @@
 from openai import OpenAI
 from dotenv import load_dotenv
+from typing import List
 import os
 import json
 import base64
@@ -13,8 +14,25 @@ client = OpenAI(
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 )
 
-def _extract_invoice_data(image_base64: str, model: str = "gemini-2.5-flash") -> dict:
+def _extract_invoice_data(image_base64: str, schema: str, model: str = "gemini-2.5-flash") -> dict:
     """Common extraction logic for invoice images"""
+
+    prompt_text = f"""
+    Ekstrak data dari nota/invoice pada gambar.
+
+    WAJIB:
+    - Kembalikan HANYA dalam format JSON
+    - Jangan gunakan markdown (```json)
+    - Jangan tambahkan penjelasan apapun
+    - Pastikan JSON valid
+    - Gunakan field SESUAI daftar berikut, jangan tambah field lain
+
+    Struktur JSON:
+    {schema}
+
+    Jika suatu field tidak ditemukan, isi dengan null.
+    """
+
     response = client.chat.completions.create(
         model=model,
         messages=[
@@ -27,7 +45,7 @@ def _extract_invoice_data(image_base64: str, model: str = "gemini-2.5-flash") ->
                 "content": [
                     {
                         "type": "text",
-                        "text": "Ekstrak semua informasi dari nota/invoice pada gambar.\n\nWAJIB:\n- Kembalikan HANYA dalam format JSON\n- Jangan gunakan markdown (```json)\n- Jangan tambahkan penjelasan apapun\n- Pastikan JSON valid\n\nGunakan struktur JSON berikut:\n{\n  \"nama_nota\": string,\n  \"tanggal\": string,\n  \"nomor_nota\": string,\n  \"pemasok\": {\n    \"nama\": string,\n    \"alamat\": string,\n    \"kota\": string,\n    \"telepon\": string\n  },\n  \"daftar_barang\": [\n    {\n      \"no\": number,\n      \"nama_barang\": string,\n      \"jumlah\": number,\n      \"harga_satuan\": number,\n      \"total_harga_item\": number\n    }\n  ],\n  \"ringkasan_pembelian\": {\n    \"jumlah_pembelian\": number,\n    \"diskon_persen\": string,\n    \"diskon_jumlah\": number,\n    \"total_pembayaran\": number\n  },\n  \"metode_pembayaran\": string,\n  \"catatan\": string | null\n}\n\nJika suatu field tidak ditemukan, isi dengan null."
+                        "text": prompt_text
                     },
                     {
                         "type": "image_url",
@@ -50,14 +68,20 @@ def _extract_invoice_data(image_base64: str, model: str = "gemini-2.5-flash") ->
 
     return json.loads(cleaned)
 
-def extract_invoice_from_image(image_url: str, model: str = "gemini-2.5-flash"):
+def extract_invoice_from_image(image_url: str, columns: List[str], model: str = "gemini-2.5-flash"):
     image_base64 = encode_image_url(image_url)
-    return _extract_invoice_data(image_base64, model)
+    schema = build_json_schema(columns)
+    return _extract_invoice_data(image_base64, schema, model)
 
-def extract_invoice_from_bytes(image_bytes: bytes, model: str = "gemini-2.5-flash") -> dict:
+def extract_invoice_from_bytes(image_bytes: bytes, columns: List[str], model: str = "gemini-2.5-flash") -> dict:
     """Extract invoice data from uploaded file bytes"""
     image_base64 = base64.b64encode(image_bytes).decode('utf-8')
-    return _extract_invoice_data(image_base64, model)
+    schema = build_json_schema(columns)
+    return _extract_invoice_data(image_base64, schema, model)
 
 def add_images(image_paths):
     pass
+
+def build_json_schema(columns: List[str]) -> str:
+    fields = ",\n  ".join([f"\"{col}\": string | number | null" for col in columns])
+    return "{\n  " + fields + "\n}"

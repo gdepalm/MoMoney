@@ -45,7 +45,7 @@ async def upload_receipt(
         
         # Extract data using Gemini AI
         model = os.getenv("LLM_MODEL", "gemini-2.5-flash")
-        extracted_data = extract_invoice_from_bytes(contents, model)
+        extracted_data = extract_invoice_from_bytes(contents, group.columns, model)
         
         # Create preview data in the format expected by frontend
         preview = {
