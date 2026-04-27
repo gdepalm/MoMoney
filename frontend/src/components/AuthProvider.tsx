@@ -5,35 +5,37 @@ import { useStore } from "@/lib/store";
 import api from "@/lib/api";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { setUser, token, setToken } = useStore();
+  const { setUser, setToken, logout } = useStore();
 
-  // Hydrate auth state on app load
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // Check if there's a stored token
         const storedToken = localStorage.getItem("auth_token");
-        if (storedToken) {
-          setToken(storedToken);
-        }
+        if (storedToken) setToken(storedToken);
 
-        // Try to get user info from backend session
-        const response = await api.get("/users/").catch(() => null);
-        if (response?.data) {
-          const userData = response.data.user || response.data;
-          if (userData?.email) {
-            setUser(userData);
-          }
+        const response = await api
+          .get<{ user?: { email?: string } } & { email?: string }>("/users/")
+          .catch(() => null);
+
+        const body = response?.data as
+          | ({ user?: { email?: string } } & { email?: string })
+          | undefined;
+        const userData = body?.user ?? body;
+
+        if (userData?.email) {
+          setUser(userData as never);
+        } else {
+          // Backend says no active session — clear any stale persisted user
+          // so the login page doesn't bounce us back to /dashboard.
+          logout();
         }
       } catch (error) {
         console.error("Failed to initialize auth:", error);
       }
     };
 
-    // Only run once on mount
-    if (!token) {
-      initializeAuth();
-    }
+    initializeAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return <>{children}</>;
