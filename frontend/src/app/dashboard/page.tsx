@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { groupsApi } from "@/lib/api";
@@ -176,6 +176,7 @@ export default function DashboardPage() {
                 onMenuToggle={() =>
                   setMenuOpen(menuOpen === group.id ? null : group.id)
                 }
+                onMenuClose={() => setMenuOpen(null)}
                 onDelete={() => {
                   setMenuOpen(null);
                   setConfirmDeleteId(group.id);
@@ -246,6 +247,7 @@ function GroupCard({
   menuOpen,
   onOpen,
   onMenuToggle,
+  onMenuClose,
   onDelete,
   style,
 }: {
@@ -253,11 +255,24 @@ function GroupCard({
   menuOpen: boolean;
   onOpen: () => void;
   onMenuToggle: () => void;
+  onMenuClose: () => void;
   onDelete: () => void;
   style?: React.CSSProperties;
 }) {
   const visibleCols = group.columns?.slice(0, 3) ?? [];
   const extraCount = (group.columns?.length ?? 0) - visibleCols.length;
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handle = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        onMenuClose();
+      }
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [menuOpen, onMenuClose]);
 
   return (
     <div
@@ -269,7 +284,7 @@ function GroupCard({
         <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
           <Icon name="folder" size={20} stroke={1.75} />
         </div>
-        <div className="relative" onClick={(e) => e.stopPropagation()}>
+        <div className="relative" ref={menuRef} onClick={(e) => e.stopPropagation()}>
           <button
             onClick={onMenuToggle}
             className="w-7 h-7 flex items-center justify-center rounded-lg text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors"

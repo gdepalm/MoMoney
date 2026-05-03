@@ -15,6 +15,9 @@ interface Props {
 
 export default function ReceiptPreview({ items: initial, columns, confidence, onConfirm, loading }: Props) {
   const [items, setItems] = useState<ExtractedItem[]>(initial);
+  // Rows present at mount are AI-extracted and cannot be deleted; rows added
+  // via the "Add row" button are user-added and can be removed.
+  const [userAdded, setUserAdded] = useState<boolean[]>(() => initial.map(() => false));
   const [editCell, setEditCell] = useState<string | null>(null);
   const [editVal, setEditVal] = useState("");
 
@@ -26,7 +29,15 @@ export default function ReceiptPreview({ items: initial, columns, confidence, on
     setItems(items.map((row, i) => i === ri ? { ...row, [colId]: editVal } : row));
     setEditCell(null);
   };
-  const addRow = () => setItems([...items, Object.fromEntries(columns.map((c) => [c.id, ""]))]);
+  const addRow = () => {
+    setItems([...items, Object.fromEntries(columns.map((c) => [c.id, ""]))]);
+    setUserAdded([...userAdded, true]);
+  };
+  const deleteRow = (ri: number) => {
+    setItems(items.filter((_, i) => i !== ri));
+    setUserAdded(userAdded.filter((_, i) => i !== ri));
+    if (editCell?.startsWith(`${ri}:`)) setEditCell(null);
+  };
 
   const pct = Math.round(confidence * 100);
   const isHigh = pct >= 80;
@@ -51,11 +62,12 @@ export default function ReceiptPreview({ items: initial, columns, confidence, on
                     {col.name}
                   </th>
                 ))}
+                <th className="w-10" />
               </tr>
             </thead>
             <tbody>
               {items.map((row, ri) => (
-                <tr key={ri} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/60 transition-colors">
+                <tr key={ri} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/60 transition-colors group">
                   {columns.map((col) => {
                     const key = `${ri}:${col.id}`;
                     const isEditing = editCell === key;
@@ -73,6 +85,17 @@ export default function ReceiptPreview({ items: initial, columns, confidence, on
                       </td>
                     );
                   })}
+                  <td className="w-10 px-2 py-2.5 text-right">
+                    {userAdded[ri] && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteRow(ri); }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500"
+                        title="Delete row"
+                      >
+                        <Icon name="trash" size={13} />
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

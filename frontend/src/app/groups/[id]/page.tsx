@@ -236,6 +236,35 @@ export default function GroupPage() {
   );
 }
 
+function parseNumber(v: unknown): number | null {
+  if (v === null || v === undefined || v === "") return null;
+  if (typeof v === "number") return Number.isFinite(v) ? v : null;
+  if (typeof v !== "string") return null;
+  // Strip currency symbols, thousands separators, and surrounding whitespace.
+  // Accepts "Rp 12.500", "$1,234.56", "12.500,50" (treated as European), etc.
+  const cleaned = v.replace(/[^\d,.\-]/g, "").trim();
+  if (!cleaned) return null;
+  let normalized = cleaned;
+  const lastComma = cleaned.lastIndexOf(",");
+  const lastDot = cleaned.lastIndexOf(".");
+  if (lastComma > lastDot) {
+    // European-style: "12.500,50" -> "12500.50"
+    normalized = cleaned.replace(/\./g, "").replace(",", ".");
+  } else {
+    // US-style: "1,234.56" -> "1234.56"
+    normalized = cleaned.replace(/,/g, "");
+  }
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : null;
+}
+
+function formatTotal(n: number): string {
+  return n.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+}
+
 function InvoicesTable({
   columns,
   invoices,
@@ -254,6 +283,23 @@ function InvoicesTable({
       </div>
     );
   }
+
+  // Only sum the "Price" column (case-insensitive). Non-numeric values are
+  // skipped, not treated as zero.
+  const priceColumn = columns.find((c) => c.trim().toLowerCase() === "price");
+  let priceSum = 0;
+  let priceCount = 0;
+  if (priceColumn) {
+    for (const inv of invoices) {
+      const data = (inv.data ?? {}) as Record<string, unknown>;
+      const n = parseNumber(data[priceColumn]);
+      if (n !== null) {
+        priceSum += n;
+        priceCount += 1;
+      }
+    }
+  }
+  const showTotal = priceColumn && priceCount > 0;
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
@@ -339,6 +385,29 @@ function InvoicesTable({
               })
             )}
           </tbody>
+          {showTotal && invoices.length > 0 && (
+            <tfoot>
+              <tr className="border-t-2 border-slate-200 bg-slate-50">
+                {columns.map((col) => (
+                  <td
+                    key={col}
+                    className="px-4 py-3 text-[13px] font-semibold text-slate-700 whitespace-nowrap"
+                  >
+                    {col === priceColumn && (
+                      <span>
+                        <span className="text-[11px] uppercase tracking-wider font-bold text-slate-400 mr-2">
+                          Total
+                        </span>
+                        {formatTotal(priceSum)}
+                      </span>
+                    )}
+                  </td>
+                ))}
+                <td />
+                <td />
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
       <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 text-[11px] text-slate-400">

@@ -40,6 +40,7 @@ export default function UploadPage() {
   const [loadingMeta, setLoadingMeta] = useState(true);
   const [metaError, setMetaError] = useState<string | null>(null);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [uploadingAnother, setUploadingAnother] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -91,13 +92,25 @@ export default function UploadPage() {
     setUploadError(null);
     try {
       await receiptApi.insertToSheet(id, jobId, items);
-      // Persist the first extracted item into the invoice's `data` field
-      // so the group page can show it as a row.
-      const first = items[0];
+      // Each preview row becomes its own invoice (= one row in the group page).
+      // The original invoice (created when the user opened the upload page)
+      // gets the first item; remaining items become new invoices in the same
+      // group so manually-added rows actually show up.
+      const [first, ...rest] = items;
       if (first) {
         await invoicesApi.update(id, {
           data: first as Record<string, unknown>,
         });
+      }
+      if (rest.length > 0 && groupId !== null) {
+        await Promise.all(
+          rest.map((item) =>
+            invoicesApi.create({
+              groupId,
+              data: item as Record<string, unknown>,
+            }),
+          ),
+        );
       }
       setUploadPhase("done");
     } catch (e) {
@@ -111,6 +124,21 @@ export default function UploadPage() {
   const goBackToGroup = () => {
     if (groupId !== null) router.push(`/groups/${groupId}`);
     else router.push("/dashboard");
+  };
+
+  const handleUploadAnother = async () => {
+    if (groupId === null) return;
+    setUploadingAnother(true);
+    setUploadError(null);
+    try {
+      const invoice = await invoicesApi.create({ groupId, data: {} });
+      resetUpload();
+      router.push(`/upload/${invoice.id}`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to start a new upload.";
+      setUploadError(msg);
+      setUploadingAnother(false);
+    }
   };
 
   // ── Done screen ───────────────────────────────────────────────────────────
@@ -145,11 +173,18 @@ export default function UploadPage() {
                 Back to Group <Icon name="arrowRight" size={15} />
               </button>
               <button
-                onClick={resetUpload}
-                className="px-6 py-3 border border-slate-200 text-slate-600 rounded-xl text-[13px] font-medium hover:bg-slate-50 transition-colors"
+                onClick={handleUploadAnother}
+                disabled={uploadingAnother || groupId === null}
+                className="flex items-center justify-center gap-2 px-6 py-3 border border-slate-200 text-slate-600 rounded-xl text-[13px] font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
               >
+                {uploadingAnother && (
+                  <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                )}
                 Upload Another Receipt
               </button>
+              {uploadError && (
+                <p className="text-[12px] text-red-600 mt-1">{uploadError}</p>
+              )}
             </div>
           </div>
         </div>
