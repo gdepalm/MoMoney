@@ -60,6 +60,8 @@ async def upload_receipt(
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -109,6 +111,8 @@ async def insert_to_sheet(
             "success": True,
             "insertedRows": inserted_rows
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -168,6 +172,7 @@ def create_invoice(
     return invoice
 
 
+@router.patch("/{invoice_id}", response_model=InvoiceRead)
 @router.patch("/invoices/{invoice_id}", response_model=InvoiceRead)
 def update_invoice(
     invoice_id: int,
@@ -195,6 +200,7 @@ def update_invoice(
     return invoice
 
 
+@router.delete("/{invoice_id}")
 @router.delete("/invoices/{invoice_id}")
 def delete_invoice(
     invoice_id: int,
