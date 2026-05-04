@@ -43,18 +43,18 @@ export default function Navbar() {
 
   return (
     <header
-      className="h-15 bg-white border-b border-slate-200 flex items-center px-6 gap-4 flex-shrink-0 shadow-sm"
+      className="h-15 flex flex-shrink-0 items-center gap-4 border-b border-emerald-100 bg-white/95 px-6 shadow-sm shadow-emerald-950/5 backdrop-blur"
       style={{ height: 60 }}
     >
       {/* Logo */}
       <button
         onClick={() => router.push("/dashboard")}
-        className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+        className="flex items-center gap-2.5 transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
       >
-        <div className="w-8 h-8 bg-emerald-600 rounded-[9px] flex items-center justify-center text-white flex-shrink-0">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[9px] bg-emerald-700 text-white">
           <Icon name="scan" size={16} stroke={2} />
         </div>
-        <span className="font-bold text-[15px] text-slate-900 tracking-tight">
+        <span className="font-display text-xl font-semibold text-emerald-950">
           MoMoney
         </span>
       </button>
@@ -65,30 +65,30 @@ export default function Navbar() {
       <div className="relative" ref={ref}>
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+          className="flex min-h-10 items-center gap-2 rounded-lg px-2.5 py-1.5 transition-colors hover:bg-emerald-50 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
         >
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center text-white text-[11px] font-semibold">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-700 text-xs font-semibold text-white">
             {initials}
           </div>
-          <span className="text-[13px] font-medium text-slate-700 hidden sm:block">
+          <span className="hidden text-sm font-semibold text-emerald-950 sm:block">
             {user?.name ?? "User"}
           </span>
-          <Icon name="chevronDown" size={13} className="text-slate-400" />
+          <Icon name="chevronDown" size={13} className="text-emerald-700/70" />
         </button>
 
         {open && (
-          <div className="absolute right-0 top-[calc(100%+6px)] w-48 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-            <div className="px-4 py-3 border-b border-slate-100">
-              <p className="text-[13px] font-semibold text-slate-800">
+          <div className="absolute right-0 top-[calc(100%+6px)] z-50 w-48 overflow-hidden rounded-xl border border-emerald-100 bg-white shadow-lg shadow-emerald-950/10 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="border-b border-emerald-100 px-4 py-3">
+              <p className="text-sm font-semibold text-emerald-950">
                 {user?.name}
               </p>
-              <p className="text-[11px] text-slate-400 truncate">
+              <p className="truncate text-xs text-emerald-700/60">
                 {user?.email}
               </p>
             </div>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-2 px-4 py-2.5 text-[13px] text-red-500 hover:bg-red-50 transition-colors"
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-red-500 transition-colors hover:bg-red-50"
             >
               <Icon name="logout" size={14} />
               Sign out

@@ -28,15 +28,15 @@ export default function Sidebar() {
   })();
 
   return (
-    <aside className="w-[220px] bg-white border-r border-slate-200 flex-shrink-0 overflow-y-auto flex flex-col">
+    <aside className="w-[240px] flex-shrink-0 overflow-y-auto border-r border-emerald-100 bg-white">
       <nav className="p-3 flex-1 flex flex-col gap-4">
         <button
           onClick={() => router.push("/dashboard")}
           className={cn(
-            "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors",
+            "w-full flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
             pathname === "/dashboard"
-              ? "bg-emerald-50 text-emerald-700"
-              : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+              ? "bg-emerald-50 text-emerald-900"
+              : "text-emerald-800/75 hover:bg-emerald-50 hover:text-emerald-950"
           )}
         >
           <Icon name="grid" size={14} />
@@ -45,7 +45,7 @@ export default function Sidebar() {
 
         {groups.length > 0 && (
           <div className="flex flex-col gap-1">
-            <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <div className="px-3 text-xs font-bold uppercase tracking-wider text-emerald-700/60">
               Groups
             </div>
             {groups.map((g) => {
@@ -55,10 +55,10 @@ export default function Sidebar() {
                   key={g.id}
                   onClick={() => router.push(`/groups/${g.id}`)}
                   className={cn(
-                    "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors text-left",
+                    "w-full flex min-h-10 items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold transition-colors",
                     isActive
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                      ? "bg-emerald-50 text-emerald-900"
+                      : "text-emerald-800/75 hover:bg-emerald-50 hover:text-emerald-950"
                   )}
                   title={g.name}
                 >

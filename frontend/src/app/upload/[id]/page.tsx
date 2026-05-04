@@ -155,7 +155,7 @@ export default function UploadPage() {
                 className="text-emerald-600"
               />
             </div>
-            <h2 className="text-[26px] font-bold text-slate-900 tracking-tight mb-2">
+            <h2 className="mb-2 font-display text-[26px] font-semibold text-emerald-950">
               Inserted Successfully!
             </h2>
             <p className="text-[14px] text-slate-400 mb-8 leading-relaxed">
@@ -213,7 +213,7 @@ export default function UploadPage() {
         </button>
 
         <div className="mb-6">
-          <h1 className="text-[22px] font-bold text-slate-900 tracking-tight">
+          <h1 className="font-display text-3xl font-semibold text-emerald-950">
             Upload Receipt
           </h1>
           <p className="text-[13px] text-slate-400 mt-1">

@@ -208,10 +208,27 @@ export const invoicesApi = {
     payload: Partial<Invoice> & Partial<Pick<InvoiceRead, "data" | "image_url">>,
   ): Promise<Invoice & InvoiceRead> =>
     api
-      .patch<Invoice & InvoiceRead>(`/invoices/invoices/${id}`, payload)
+      .patch<Invoice & InvoiceRead>(`/invoices/${id}`, payload)
+      .catch((error) => {
+        if (error instanceof ApiError && error.status === 405) {
+          return api.patch<Invoice & InvoiceRead>(
+            `/invoices/invoices/${id}`,
+            payload,
+          );
+        }
+        throw error;
+      })
       .then((r) => r.data),
   delete: (id: string | number): Promise<void> =>
-    api.delete<void>(`/invoices/invoices/${id}`).then(() => undefined),
+    api
+      .delete<void>(`/invoices/${id}`)
+      .catch((error) => {
+        if (error instanceof ApiError && error.status === 405) {
+          return api.delete<void>(`/invoices/invoices/${id}`);
+        }
+        throw error;
+      })
+      .then(() => undefined),
 };
 
 // Re-export so consumers can satisfy the (unused) Invoice import
