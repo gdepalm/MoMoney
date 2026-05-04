@@ -28,4 +28,7 @@ class Invoice(InvoiceBase, table=True):
         default_factory=lambda: datetime.now(timezone.utc))
 
     group: "Group" = Relationship(back_populates="invoices")
-    extractions: List["InvoiceExtraction"] = Relationship(back_populates="invoice")
+    extractions: List["InvoiceExtraction"] = Relationship(
+        back_populates="invoice",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
