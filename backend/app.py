@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.cors import CORSMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from sqlmodel import SQLModel
 
 from domain.users.routes import router as user_router
@@ -39,6 +40,8 @@ app.add_middleware(
 
 app.add_middleware(SessionMiddleware,
                    secret_key=os.getenv("SESSION_SECRET_KEY", "a_secret_key"))
+
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 
 @app.get("/")
