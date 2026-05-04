@@ -18,13 +18,13 @@ FROM python:3.12-alpine
 
 WORKDIR /backend
 
-COPY --from=builder /app/.venv /app/.venv
-COPY --from=builder /app/app.py /app/app.py
-COPY --from=builder /app/database.py /app/database.py
-COPY --from=builder /app/domain /app/domain
-COPY --from=builder /app/services /app/services
+COPY --from=builder /backend/.venv /backend/.venv
+COPY --from=builder /backend/app.py /backend/app.py
+COPY --from=builder /backend/database.py /backend/database.py
+COPY --from=builder /backend/domain /backend/domain
+COPY --from=builder /backend/services /backend/services
 
-ENV PATH="/app/.venv/bin:$PATH" \
+ENV PATH="/backend/.venv/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 

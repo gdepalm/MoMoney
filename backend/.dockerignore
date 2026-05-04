@@ -8,7 +8,8 @@
 client_secret*
 **/client_secret*
 
-!requirements.txt
+!pyproject.toml
+!uv.lock
 !app.py
 !database.py
 !domain/
