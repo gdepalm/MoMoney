@@ -24,12 +24,14 @@ async def lifespan(app: FastAPI):
     # on shutdown
 
 
-app = FastAPI(lifespan=lifespan, redirect_slashes=True)
+app = FastAPI(lifespan=lifespan, root_path="/api", redirect_slashes=True)
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8000"],
+    allow_origins=["http://localhost:3000",
+                   "http://localhost:8000",
+                   "https://momoney.mieintel.dev"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,11 +45,9 @@ app.add_middleware(SessionMiddleware,
 def greet():
     return {"message": "Welcome to the MoMoney API!"}
 
-
-@app.get("/ping")
-def ping():
-    return {"message": "pong"}
-
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 
 app.include_router(user_router, tags=["users"])
 app.include_router(group_router, prefix="/groups", tags=["groups"])
