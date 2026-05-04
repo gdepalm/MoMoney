@@ -4,6 +4,8 @@ from sqlmodel import Session, select
 
 from domain.groups.entity import Group
 from domain.groups.schemas import GroupCreate, GroupRead, GroupReadWithInvoices, GroupUpdate
+from domain.invoices.entity import Invoice
+from domain.invoices.schemas import InvoiceCreate, InvoiceRead
 from domain.users.entity import User
 from services.dependencies.auth import get_current_user
 from services.dependencies.database import get_session
@@ -92,3 +94,27 @@ def delete_group(
     session.delete(group)
     session.commit()
     return {"ok": True}
+
+
+@router.post("/{group_id}/invoices", response_model=InvoiceRead)
+def create_invoice(
+    group_id: int,
+    payload: InvoiceCreate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    group = session.get(Group, group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    if group.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    invoice = Invoice(
+        group_id=group_id,
+        data=payload.data,
+        image_url=payload.image_url,
+    )
+    session.add(invoice)
+    session.commit()
+    session.refresh(invoice)
+    return invoice

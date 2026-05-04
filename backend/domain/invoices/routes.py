@@ -148,32 +148,7 @@ def get_invoice(
     return invoice
 
 
-@router.post("/groups/{group_id}/invoices", response_model=InvoiceRead)
-def create_invoice(
-    group_id: int,
-    payload: InvoiceCreate,
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
-):
-    group = session.get(Group, group_id)
-    if not group:
-        raise HTTPException(status_code=404, detail="Group not found")
-    if group.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-
-    invoice = Invoice(
-        group_id=group_id,
-        data=payload.data,
-        image_url=payload.image_url,
-    )
-    session.add(invoice)
-    session.commit()
-    session.refresh(invoice)
-    return invoice
-
-
 @router.patch("/{invoice_id}", response_model=InvoiceRead)
-@router.patch("/invoices/{invoice_id}", response_model=InvoiceRead)
 def update_invoice(
     invoice_id: int,
     payload: InvoiceUpdate,
@@ -201,7 +176,6 @@ def update_invoice(
 
 
 @router.delete("/{invoice_id}")
-@router.delete("/invoices/{invoice_id}")
 def delete_invoice(
     invoice_id: int,
     session: Session = Depends(get_session),
