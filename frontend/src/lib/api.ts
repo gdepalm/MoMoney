@@ -196,7 +196,7 @@ export const invoicesApi = {
         description: payload.description,
       };
       return api
-        .post<InvoiceRead>(`/invoices/groups/${groupId}/invoices`, {
+        .post<InvoiceRead>(`/groups/${groupId}/invoices`, {
           data,
           image_url: payload.image_url,
         })
