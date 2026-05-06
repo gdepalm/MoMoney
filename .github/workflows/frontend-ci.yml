@@ -1,0 +1,78 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - frontend/**
+      - .github/workflows/frontend-ci.yml
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/momoney-frontend
+
+jobs:
+  frontend-build-test:
+    name: Docker Build & Smoke Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL=https://momoney.mieintel.dev/api \
+            -t momoney-frontend:ci \
+            ./frontend
+
+      - name: Run container
+        run: |
+          docker run -d --name momoney-frontend-ci \
+            -p 3000:3000 \
+            momoney-frontend:ci
+
+      - name: Wait for startup
+        run: sleep 10
+
+      - name: Smoke test
+        run: curl --fail --silent --show-error http://127.0.0.1:3000
+
+      - name: Print logs
+        if: always()
+        run: docker logs momoney-frontend-ci
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f momoney-frontend-ci
+
+  frontend-push:
+    name: Push to GHCR
+    runs-on: ubuntu-latest
+    needs: frontend-build-test
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://momoney.mieintel.dev/api
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/momoney-frontend:latest
+            ghcr.io/${{ github.repository_owner }}/momoney-frontend:${{ github.sha }}
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/momoney-frontend:latest
+          cache-to: type=inline

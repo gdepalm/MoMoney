@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { groupsApi } from "@/lib/api";
@@ -110,16 +110,17 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-[22px] font-bold text-slate-900 tracking-tight">
+            <h1 className="font-display text-3xl font-semibold text-emerald-950">
               Dashboard
             </h1>
-            <p className="text-[13px] text-slate-400 mt-1">
+            <p className="mt-1 text-sm text-emerald-950/60">
               {groups.length} group{groups.length !== 1 ? "s" : ""}
             </p>
           </div>
           <button
+            type="button"
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[13px] font-semibold transition-colors shadow-sm"
+            className="flex min-h-10 items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 transition-colors hover:bg-emerald-800 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
           >
             <Icon name="plus" size={14} />
             New Group
@@ -133,33 +134,33 @@ export default function DashboardPage() {
           </div>
         ) : error ? (
           <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center">
-            <p className="text-[13px] text-red-600 mb-3">{error}</p>
+            <p className="mb-3 text-sm text-red-600">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="text-[13px] text-red-700 underline"
+              className="text-sm text-red-700 underline"
             >
               Retry
             </button>
           </div>
         ) : groups.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-16 text-center shadow-sm">
-            <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="bg-white border border-emerald-100 rounded-2xl p-16 text-center shadow-sm shadow-emerald-950/5">
+            <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Icon
                 name="folder"
                 size={24}
                 stroke={1.5}
-                className="text-slate-400"
+                className="text-emerald-700"
               />
             </div>
-            <h3 className="text-[15px] font-bold text-slate-700 mb-2">
+            <h3 className="mb-2 text-lg font-bold text-emerald-950">
               No groups yet
             </h3>
-            <p className="text-[13px] text-slate-400 mb-6">
+            <p className="mb-6 text-sm text-emerald-950/60">
               Create a group to start organizing your receipts.
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[13px] font-semibold transition-colors"
+            className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 transition-colors hover:bg-emerald-800 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
               <Icon name="plus" size={14} />
               New Group
@@ -176,6 +177,7 @@ export default function DashboardPage() {
                 onMenuToggle={() =>
                   setMenuOpen(menuOpen === group.id ? null : group.id)
                 }
+                onMenuClose={() => setMenuOpen(null)}
                 onDelete={() => {
                   setMenuOpen(null);
                   setConfirmDeleteId(group.id);
@@ -203,10 +205,10 @@ export default function DashboardPage() {
             <div className="w-11 h-11 bg-red-50 rounded-xl flex items-center justify-center mb-4">
               <Icon name="trash" size={20} className="text-red-500" />
             </div>
-            <h2 className="text-[15px] font-bold text-slate-900 mb-1">
+            <h2 className="mb-1 text-lg font-bold text-emerald-950">
               Delete group?
             </h2>
-            <p className="text-[13px] text-slate-500 mb-6">
+            <p className="mb-6 text-sm text-emerald-950/65">
               Group{" "}
               <span className="font-semibold text-slate-700">
                 {groups.find((g) => g.id === confirmDeleteId)?.name}
@@ -217,14 +219,14 @@ export default function DashboardPage() {
               <button
                 onClick={() => setConfirmDeleteId(null)}
                 disabled={deleting}
-                className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                className="flex-1 rounded-xl border border-emerald-200 px-4 py-2.5 text-sm font-semibold text-emerald-800 transition-colors hover:bg-emerald-50 disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteConfirmed}
                 disabled={deleting}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-[13px] font-semibold transition-colors disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
               >
                 {deleting ? (
                   <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
@@ -246,6 +248,7 @@ function GroupCard({
   menuOpen,
   onOpen,
   onMenuToggle,
+  onMenuClose,
   onDelete,
   style,
 }: {
@@ -253,26 +256,40 @@ function GroupCard({
   menuOpen: boolean;
   onOpen: () => void;
   onMenuToggle: () => void;
+  onMenuClose: () => void;
   onDelete: () => void;
   style?: React.CSSProperties;
 }) {
   const visibleCols = group.columns?.slice(0, 3) ?? [];
   const extraCount = (group.columns?.length ?? 0) - visibleCols.length;
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handle = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        onMenuClose();
+      }
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [menuOpen, onMenuClose]);
 
   return (
     <div
-      className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group relative"
+      className="group relative cursor-pointer rounded-2xl border border-emerald-100 bg-white/90 p-5 shadow-sm shadow-emerald-950/5 transition-transform hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md hover:shadow-emerald-950/10"
       style={style}
       onClick={onOpen}
     >
       <div className="flex items-start justify-between mb-4">
-        <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
           <Icon name="folder" size={20} stroke={1.75} />
         </div>
-        <div className="relative" onClick={(e) => e.stopPropagation()}>
+        <div className="relative" ref={menuRef} onClick={(e) => e.stopPropagation()}>
           <button
             onClick={onMenuToggle}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 transition-colors hover:bg-emerald-100 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+            aria-label="Group actions"
           >
             <span className="text-lg leading-none tracking-widest">···</span>
           </button>
@@ -280,13 +297,13 @@ function GroupCard({
             <div className="absolute right-0 top-full mt-1 w-36 bg-white border border-slate-200 rounded-xl shadow-lg z-10 overflow-hidden">
               <button
                 onClick={onOpen}
-                className="w-full text-left px-3 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 transition-colors"
+                className="w-full px-3 py-2.5 text-left text-sm text-emerald-950 transition-colors hover:bg-emerald-50"
               >
                 Open
               </button>
               <button
                 onClick={onDelete}
-                className="w-full text-left px-3 py-2.5 text-[13px] text-red-500 hover:bg-red-50 transition-colors"
+                className="w-full px-3 py-2.5 text-left text-sm text-red-500 transition-colors hover:bg-red-50"
               >
                 Delete
               </button>
@@ -295,7 +312,7 @@ function GroupCard({
         </div>
       </div>
 
-      <h3 className="font-bold text-[14px] text-slate-900 tracking-tight mb-3 truncate">
+      <h3 className="mb-3 truncate text-base font-bold text-emerald-950">
         {group.name}
       </h3>
 
@@ -304,24 +321,24 @@ function GroupCard({
           {visibleCols.map((col) => (
             <span
               key={col}
-              className="px-2 py-0.5 bg-slate-100 text-slate-500 text-[11px] rounded-full truncate max-w-[90px]"
+            className="max-w-[90px] truncate rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700"
             >
               {col}
             </span>
           ))}
           {extraCount > 0 && (
-            <span className="px-2 py-0.5 bg-slate-100 text-slate-400 text-[11px] rounded-full">
+            <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs text-teal-700/70">
               +{extraCount} more
             </span>
           )}
         </div>
       ) : (
-        <p className="text-[12px] text-slate-400">No columns defined</p>
+        <p className="text-sm text-emerald-950/55">No columns defined</p>
       )}
 
       <div className="flex items-center gap-1 mt-4 pt-4 border-t border-slate-100">
         <Icon name="columns" size={11} className="text-slate-400" />
-        <span className="text-[11px] text-slate-400">
+        <span className="text-xs text-emerald-700/60">
           {group.columns?.length ?? 0} column
           {(group.columns?.length ?? 0) !== 1 ? "s" : ""}
         </span>

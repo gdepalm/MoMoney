@@ -4,6 +4,7 @@ from sqlmodel import Session, select
 from services.oauth_services import oauth
 from services.dependencies.database import get_session
 from domain.users.entity import User
+from authlib.integrations.base_client.errors import OAuthError
 import os
 from dotenv import load_dotenv
 
@@ -38,8 +39,14 @@ async def test_login(request: Request, session: Session = Depends(get_session)):
         session.commit()
         session.refresh(db_user)
     
-    request.session["user"] = db_user.dict()
-    return {"message": "Test login successful", "user": db_user.dict()}
+    user_data = {
+        "id": db_user.id,
+        "google_id": db_user.google_id,
+        "name": db_user.name,
+        "email": db_user.email,
+    }
+    request.session["user"] = user_data
+    return {"message": "Test login successful", "user": user_data}
 
 
 @router.get("/auth/google")
@@ -58,24 +65,24 @@ async def login(request: Request):
 
 @router.get("/auth/callback", name='auth_callback')
 async def auth_callback(request: Request, session: Session = Depends(get_session)):
-    # Google sends the user back here with a code
-    token = await oauth.google.authorize_access_token(request)
+    try:
+        token = await oauth.google.authorize_access_token(request)
+    except OAuthError:
+        return RedirectResponse(url=f'{FRONTEND_URL}/login?error=oauth_failed')
+
     user_info = token.get('userinfo')
     if not user_info:
         return RedirectResponse(url=f'{FRONTEND_URL}/login?error=verification_failed')
 
     google_id = user_info['sub']
 
-    # Check if user already exists
     statement = select(User).where(User.google_id == google_id)
     db_user = session.exec(statement).first()
 
     if db_user:
-        # User exists, update their info if necessary
         db_user.name = user_info['name']
         db_user.email = user_info['email']
     else:
-        # User does not exist, create a new one
         db_user = User(
             google_id=google_id,
             name=user_info['name'],
@@ -86,7 +93,12 @@ async def auth_callback(request: Request, session: Session = Depends(get_session
     session.commit()
     session.refresh(db_user)
 
-    request.session['user'] = db_user.dict()
+    request.session['user'] = {
+        "id": db_user.id,
+        "google_id": db_user.google_id,
+        "name": db_user.name,
+        "email": db_user.email,
+    }
     return RedirectResponse(url=f'{FRONTEND_URL}/dashboard')
 
 

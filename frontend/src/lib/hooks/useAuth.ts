@@ -18,9 +18,12 @@ export const useAuth = () => {
         }
 
         // Try to get user from session/token
-        const response = await api.get("/users/").catch(() => null);
+        const response = await api
+          .get<{ user?: unknown } & Record<string, unknown>>("/users/")
+          .catch(() => null);
         if (response?.data) {
-          setUser(response.data.user || response.data);
+          const body = response.data;
+          setUser((body.user ?? body) as never);
         }
       } catch (error) {
         console.error("Auth check failed:", error);

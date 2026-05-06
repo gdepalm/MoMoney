@@ -1,28 +1,26 @@
 import type { Metadata } from "next";
-import { DM_Mono, DM_Sans, Geist, Geist_Mono } from "next/font/google";
+import { DM_Mono, Newsreader, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
+  variable: "--font-jakarta",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const newsreader = Newsreader({
   subsets: ["latin"],
-});
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  variable: "--font-sans",
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-newsreader",
   display: "swap",
 });
 
 const dmMono = DM_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
-  variable: "--font-mono",
+  variable: "--font-dm-mono",
   display: "swap",
 });
 
@@ -39,7 +37,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} ${dmMono.variable} antialiased`}>
+      <body
+        className={`${jakarta.variable} ${newsreader.variable} ${dmMono.variable} antialiased`}
+      >
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

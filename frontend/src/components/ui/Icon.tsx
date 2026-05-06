@@ -12,6 +12,7 @@ const PATHS: Record<string, string | string[]> = {
   logout:       ["M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4","M16 17l5-5-5-5","M21 12H9"],
   arrowLeft:    "M19 12H5M12 19l-7-7 7-7",
   arrowRight:   "M5 12h14M12 5l7 7-7 7",
+  refreshCw:    ["M21 12a9 9 0 0 1-15.37 6.36L3 15","M3 21v-6h6","M3 12A9 9 0 0 1 18.37 5.64L21 9","M21 3v6h-6"],
   zap:          "M13 2L3 14h9l-1 8 10-12h-9l1-8z",
   shield:       "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
   fileText:     ["M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z","M14 2v6h6","M16 13H8","M16 17H8","M10 9H8"],

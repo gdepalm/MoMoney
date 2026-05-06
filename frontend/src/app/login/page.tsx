@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { authApi } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import Icon from "@/components/ui/Icon";
@@ -9,7 +10,7 @@ import Icon from "@/components/ui/Icon";
 function LoginContent() {
   const router = useRouter();
   const params = useSearchParams();
-  const { user, setUser, setToken, token } = useStore();
+  const { user, setUser, token } = useStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +28,7 @@ function LoginContent() {
           setUser(response);
           router.replace("/dashboard");
         }
-      } catch (err) {
+      } catch {
         // Session may have expired or user not authenticated
         const urlError = params.get("error");
         if (urlError) {
@@ -48,24 +49,32 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.22),transparent_34%),radial-gradient(circle_at_top_right,rgba(124,58,237,0.12),transparent_28%),linear-gradient(180deg,#ecfdf5_0%,#f0fdfa_48%,#ffffff_100%)] p-6">
+      <Link
+        href="/"
+        className="absolute left-6 top-6 inline-flex min-h-10 items-center gap-2 rounded-xl border border-emerald-200 bg-white/85 px-4 py-2 text-sm font-semibold text-emerald-800 shadow-sm shadow-emerald-950/5 transition-colors hover:bg-emerald-50 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+      >
+        <Icon name="arrowLeft" size={15} />
+        Back
+      </Link>
+
       {/* Logo */}
       <div className="text-center mb-8">
-        <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-500 to-cyan-500 shadow-lg shadow-emerald-900/15">
           <Icon name="scan" size={24} stroke={2} className="text-white" />
         </div>
-        <h1 className="text-[22px] font-bold text-slate-900 tracking-tight">
+        <h1 className="font-display text-4xl font-semibold text-emerald-950">
           Welcome to MoMoney
         </h1>
-        <p className="text-[13px] text-slate-400 mt-1.5">
+        <p className="mt-2 text-base text-emerald-950/65">
           Sign in to manage your receipt invoices
         </p>
       </div>
 
       {/* Card */}
-      <div className="w-full max-w-sm bg-white border border-slate-200 rounded-2xl p-8 shadow-lg">
+      <div className="w-full max-w-md rounded-2xl border border-emerald-100 bg-white/90 p-8 shadow-xl shadow-emerald-950/10 backdrop-blur">
         {error && (
-          <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3 mb-6 text-[13px] text-red-600">
+          <div className="mb-6 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
             <span className="mt-0.5 flex-shrink-0">⚠</span>
             {error}
           </div>
@@ -74,7 +83,7 @@ function LoginContent() {
         <button
           onClick={handleGoogle}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border-[1.5px] border-slate-200 rounded-xl text-[14px] font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+          className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-emerald-200 bg-white px-4 py-3 text-base font-semibold text-emerald-950 transition-colors hover:border-emerald-300 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
         >
           {loading ? (
             <div className="w-5 h-5 border-2 border-slate-200 border-t-emerald-600 rounded-full animate-spin" />
@@ -101,7 +110,7 @@ function LoginContent() {
           {loading ? "Signing in…" : "Continue with Google"}
         </button>
 
-        <p className="text-center text-[11px] text-slate-400 mt-5 leading-relaxed">
+        <p className="mt-5 text-center text-sm leading-6 text-emerald-950/55">
           By continuing, you agree to our Terms of Service and Privacy Policy.
         </p>
       </div>
@@ -113,7 +122,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex min-h-screen items-center justify-center bg-emerald-50">
           <div className="w-6 h-6 border-2 border-slate-200 border-t-emerald-600 rounded-full animate-spin" />
         </div>
       }

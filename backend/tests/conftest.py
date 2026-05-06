@@ -8,8 +8,10 @@ from app import app
 from services.dependencies.auth import get_current_user
 from services.dependencies.database import get_session
 from domain.users.entity import User
-# Import to register Group model with SQLModel metadata
+# Import to register models with SQLModel metadata
 from domain.groups.entity import Group
+from domain.invoices.entity import Invoice
+from domain.invoice_extractions.entity import InvoiceExtraction
 
 # Store test database in backend/tests/test.db
 test_db_file = os.path.join(os.path.dirname(__file__), "test.db")
@@ -32,11 +34,11 @@ app.dependency_overrides[get_session] = override_get_session
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_database():
-    """Create all tables at the start of the test session"""
+    """Drop and recreate all tables at the start of each test session for a clean state"""
+    SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
     yield
-    # Optionally drop all tables after the session ends
-    # SQLModel.metadata.drop_all(engine)
+    SQLModel.metadata.drop_all(engine)
 
 
 @pytest.fixture(name="session")
@@ -52,7 +54,7 @@ def client_fixture(session: Session) -> Generator[TestClient, None, None]:
 
 
 @pytest.fixture(name="test_user", scope="session")
-def test_user_fixture() -> User:
+def test_user_fixture(setup_database) -> User:
     # Create a session for the test user
     with Session(engine) as session:
         user = User(

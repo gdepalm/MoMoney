@@ -1,29 +1,32 @@
-# Builder stage: build Python wheels once.
-FROM python:3.12.2-slim AS builder
+FROM ghcr.io/astral-sh/uv:python3.12-alpine AS builder
 
 WORKDIR /backend
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-	PYTHONUNBUFFERED=1
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
 
-COPY requirements.txt .
-RUN pip wheel --no-cache-dir --wheel-dir /backend/wheels -r requirements.txt
+COPY pyproject.toml uv.lock ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-install-project
 
-# Runtime stage: install from prebuilt wheels and copy only app sources.
-FROM python:3.12.2-slim
+COPY . .
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
+
+
+FROM python:3.12-alpine
 
 WORKDIR /backend
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-	PYTHONUNBUFFERED=1
+COPY --from=builder /backend/.venv /backend/.venv
+COPY --from=builder /backend/app.py /backend/app.py
+COPY --from=builder /backend/database.py /backend/database.py
+COPY --from=builder /backend/domain /backend/domain
+COPY --from=builder /backend/services /backend/services
 
-COPY --from=builder /backend/wheels /wheels
-COPY --from=builder /backend/requirements.txt .
-RUN pip install --no-cache-dir /wheels/*
+ENV PATH="/backend/.venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-COPY app.py database.py ./
-COPY domain ./domain
-COPY services ./services
-
-EXPOSE 80
-CMD ["fastapi", "run", "app.py", "--host", "0.0.0.0", "--port", "80"]
+EXPOSE 8000
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
