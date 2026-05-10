@@ -199,7 +199,6 @@ export default function UploadPage() {
     order: idx,
   }));
   const previewItems = aiPreviewData?.items ?? [];
-  const previewConfidence = aiPreviewData?.confidence ?? 0.94;
 
   return (
     <AppShell>
@@ -275,7 +274,6 @@ export default function UploadPage() {
           <ReceiptPreview
             items={previewItems}
             columns={previewColumns}
-            confidence={previewConfidence}
             onConfirm={handleConfirm}
             loading={confirmLoading}
           />

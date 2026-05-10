@@ -38,6 +38,7 @@ async def create_invoice_extraction(
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
     model = os.getenv("LLM_MODEL", "qwen2.5:1.5b")
+    print(model)
     
     # Extract from uploaded file or invoice's image URL
     try:
@@ -47,7 +48,7 @@ async def create_invoice_extraction(
         else:
             if not invoice.image_url:
                 raise HTTPException(status_code=400, detail="No image provided or found in invoice")
-            extracted = extract_invoice_from_image(invoice.image_url, model)
+            extracted = extract_invoice_from_image(invoice.image_url, group.columns, model)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

@@ -123,18 +123,6 @@ export default function CreateGroupModal({ open, onClose }: Props) {
                 </div>
               ))}
             </div>
-            {/* Fixed "Price" column — always last, not removable */}
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-[11px] text-slate-400 w-5 flex-shrink-0 text-right">
-                {columns.length + 1}.
-              </span>
-              <div className="flex-1 px-3 py-2 border border-slate-200 bg-slate-50 rounded-xl text-[13px] text-slate-400 select-none">
-                Prices
-              </div>
-              <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-1 rounded-lg flex-shrink-0">
-                Automatic
-              </span>
-            </div>
 
             <button
               type="button"
@@ -144,6 +132,19 @@ export default function CreateGroupModal({ open, onClose }: Props) {
               <Icon name="plus" size={13} />
               Add column
             </button>
+
+            {/* Fixed "Price" column — always last, not removable */}
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-[11px] text-slate-400 w-5 flex-shrink-0 text-right">
+                {columns.length + 1}.
+              </span>
+              <div className="flex-1 px-3 py-2 border border-slate-200 bg-slate-50 rounded-xl text-[13px] text-slate-400 select-none">
+                Price
+              </div>
+              <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-1 rounded-lg flex-shrink-0">
+                Automatic
+              </span>
+            </div>
           </div>
 
           <div className="flex gap-3 pt-1">
