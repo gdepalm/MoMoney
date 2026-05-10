@@ -1,14 +1,17 @@
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 import starlette.status
+import asyncio
 
 from domain.groups.entity import Group
 from domain.invoices.entity import Invoice
 from domain.invoice_extractions.entity import InvoiceExtraction
 from domain.users.entity import User
+from domain.invoice_extractions.routes import create_invoice_extraction
 
 # 🔥 mock function
-def mock_extract_invoice_from_image(image_url: str, model: str):
+def mock_extract_invoice_from_image(image_url: str, columns: list[str], model: str):
+    assert columns == ["nama barang", "tanggal beli", "Price"]
     return {
         "nama_nota": "NOTA TEST",
         "tanggal": "2026-03-17",
@@ -33,7 +36,11 @@ def test_create_invoice_extraction(
         mock_extract_invoice_from_image
     )
 
-    group = Group(name="Extraction Group", owner_id=test_user.id, columns=[])
+    group = Group(
+        name="Extraction Group",
+        owner_id=test_user.id,
+        columns=["nama barang", "tanggal beli", "Price"],
+    )
     session.add(group)
     session.commit()
 
@@ -69,7 +76,11 @@ def test_create_invoice_extraction_replace_existing(
         mock_extract_invoice_from_image
     )
 
-    group = Group(name="Replace Extraction", owner_id=test_user.id, columns=[])
+    group = Group(
+        name="Replace Extraction",
+        owner_id=test_user.id,
+        columns=["nama barang", "tanggal beli", "Price"],
+    )
     session.add(group)
     session.commit()
 
@@ -182,3 +193,54 @@ def test_create_invoice_extraction_not_found(
     )
 
     assert response.status_code == starlette.status.HTTP_404_NOT_FOUND
+
+
+def test_create_invoice_extraction_from_image_url_passes_group_columns(
+    session: Session,
+    test_user: User,
+    monkeypatch
+):
+    captured = {}
+
+    def mock_extract(image_url: str, columns: list[str], model: str):
+        captured["image_url"] = image_url
+        captured["columns"] = columns
+        captured["model"] = model
+        return {"nama barang": "Pakaian SD PR", "tanggal beli": "21 Juli 2022", "Price": 8500000}
+
+    monkeypatch.setattr(
+        "domain.invoice_extractions.routes.extract_invoice_from_image",
+        mock_extract
+    )
+
+    group = Group(
+        name="Direct Route Extraction",
+        owner_id=test_user.id,
+        columns=["nama barang", "tanggal beli", "Price"],
+    )
+    session.add(group)
+    session.commit()
+
+    invoice = Invoice(
+        group_id=group.id,
+        data={},
+        image_url="https://example.com/direct.jpg"
+    )
+    session.add(invoice)
+    session.commit()
+
+    result = asyncio.run(
+        create_invoice_extraction(
+            invoice_id=invoice.id,
+            file=None,
+            session=session,
+            current_user=test_user,
+        )
+    )
+
+    assert captured == {
+        "image_url": "https://example.com/direct.jpg",
+        "columns": ["nama barang", "tanggal beli", "Price"],
+        "model": "qwen2.5:1.5b",
+    }
+    assert result.extracted_data["Price"] == 8500000

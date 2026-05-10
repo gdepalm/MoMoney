@@ -3,17 +3,15 @@
 import { useState } from "react";
 import { Column, ExtractedItem } from "@/types";
 import Icon from "@/components/ui/Icon";
-import { cn } from "@/lib/utils";
 
 interface Props {
   items: ExtractedItem[];
   columns: Column[];
-  confidence: number;
   onConfirm: (items: ExtractedItem[]) => void;
   loading: boolean;
 }
 
-export default function ReceiptPreview({ items: initial, columns, confidence, onConfirm, loading }: Props) {
+export default function ReceiptPreview({ items: initial, columns, onConfirm, loading }: Props) {
   const [items, setItems] = useState<ExtractedItem[]>(initial);
   // Rows present at mount are AI-extracted and cannot be deleted; rows added
   // via the "Add row" button are user-added and can be removed.
@@ -39,18 +37,8 @@ export default function ReceiptPreview({ items: initial, columns, confidence, on
     if (editCell?.startsWith(`${ri}:`)) setEditCell(null);
   };
 
-  const pct = Math.round(confidence * 100);
-  const isHigh = pct >= 80;
-
   return (
     <div className="space-y-4">
-      {/* Confidence badge */}
-      <div className={cn("flex items-center gap-2.5 px-4 py-3 rounded-xl border text-[13px]",
-        isHigh ? "bg-emerald-50 border-emerald-100 text-emerald-700" : "bg-yellow-50 border-yellow-100 text-yellow-700")}>
-        <Icon name="check" size={15} stroke={2.5} />
-        <span><strong>{pct}% confidence</strong> · AI extracted {items.length} items · Review and edit before confirming</span>
-      </div>
-
       {/* Table */}
       <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
