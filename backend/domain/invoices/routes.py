@@ -10,7 +10,7 @@ from domain.invoice_extractions.entity import InvoiceExtraction
 from domain.users.entity import User
 from services.dependencies.auth import get_current_user
 from services.dependencies.database import get_session
-from services.gemini_services import extract_invoice_from_bytes
+from services.extraction_services import extract_invoice_from_bytes
 import os
 
 
@@ -44,7 +44,7 @@ async def upload_receipt(
         contents = await file.read()
         
         # Extract data using Gemini AI
-        model = os.getenv("LLM_MODEL", "gemini-2.5-flash")
+        model = os.getenv("LLM_MODEL", "qwen2.5:1.5b")
         extracted_data = extract_invoice_from_bytes(contents, group.columns, model)
         
         # Create preview data in the format expected by frontend
