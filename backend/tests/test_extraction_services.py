@@ -1,3 +1,5 @@
+import re
+
 from services.extraction_services import (
     build_json_schema,
     extract_invoice_from_ocr_text,
@@ -139,7 +141,7 @@ def test_format_ocr_layout_reconstructs_rows_with_horizontal_spacing():
     assert "UNIT PRICE" in layout
     assert "Subtotal" in layout
     assert "145.00" in layout
-    assert "DESCRIPTION   UNIT" in layout or "DESCRIPTION    UNIT" in layout
+    assert re.search(r"DESCRIPTION\s{2,}UNIT", layout)
 
 
 def test_extract_invoice_from_ocr_text_uses_parser_without_llm_when_enough_data():
