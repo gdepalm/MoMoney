@@ -12,6 +12,8 @@ import os
 
 load_dotenv()
 
+from services.image_services import encode_image_url
+
 client = OpenAI(
     api_key="ollama",
     base_url= os.getenv("OLLAMA_URL", "http://localhost:11434/v1")
@@ -149,6 +151,21 @@ def extract_invoice_from_bytes(
     return _extract_invoice_data(
         image_base64,
         schema,
+        model
+    )
+
+def extract_invoice_from_image(
+        image_url: str,
+        columns: List[str],
+        model: str = "qwen2.5:1.5b"
+):
+    
+    image_base64 = encode_image_url(image_url)
+    schema = build_json_schema(columns)
+
+    return _extract_invoice_data(
+        image_base64, 
+        schema, 
         model
     )
 
