@@ -2,6 +2,12 @@ FROM ghcr.io/astral-sh/uv:python3.12-alpine AS builder
 
 WORKDIR /backend
 
+# INSTALL TESSERACT
+RUN apk add --no-cache \
+    tesseract-ocr \
+    tesseract-ocr-data-ind \
+    tesseract-ocr-data-eng
+
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy
 
@@ -17,6 +23,12 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM python:3.12-alpine
 
 WORKDIR /backend
+
+# INSTALL TESSERACT
+RUN apk add --no-cache \
+    tesseract-ocr \
+    tesseract-ocr-data-ind \
+    tesseract-ocr-data-eng
 
 COPY --from=builder /backend/.venv /backend/.venv
 COPY --from=builder /backend/app.py /backend/app.py
