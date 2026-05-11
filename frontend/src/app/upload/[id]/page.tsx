@@ -145,7 +145,7 @@ export default function UploadPage() {
   if (uploadPhase === "done")
     return (
       <AppShell>
-        <div className="flex items-center justify-center h-full p-8">
+        <div className="flex items-center justify-center h-full p-4 sm:p-8">
           <div className="text-center max-w-sm">
             <div className="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
               <Icon
@@ -202,7 +202,7 @@ export default function UploadPage() {
 
   return (
     <AppShell>
-      <div className="p-8 max-w-2xl mx-auto">
+      <div className="p-4 sm:p-8 max-w-2xl mx-auto">
         <button
           onClick={goBackToGroup}
           className="flex items-center gap-1.5 text-[13px] font-medium text-slate-400 hover:text-slate-600 transition-colors mb-4"
@@ -212,7 +212,7 @@ export default function UploadPage() {
         </button>
 
         <div className="mb-6">
-          <h1 className="font-display text-3xl font-semibold text-emerald-950">
+          <h1 className="font-display text-2xl sm:text-3xl font-semibold text-emerald-950">
             Upload Receipt
           </h1>
           <p className="text-[13px] text-slate-400 mt-1">
