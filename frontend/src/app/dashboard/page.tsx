@@ -106,11 +106,11 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="font-display text-3xl font-semibold text-emerald-950">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 sm:mb-8">
+          <div className="min-w-0">
+            <h1 className="font-display text-2xl sm:text-3xl font-semibold text-emerald-950">
               Dashboard
             </h1>
             <p className="mt-1 text-sm text-emerald-950/60">
@@ -143,7 +143,7 @@ export default function DashboardPage() {
             </button>
           </div>
         ) : groups.length === 0 ? (
-          <div className="bg-white border border-emerald-100 rounded-2xl p-16 text-center shadow-sm shadow-emerald-950/5">
+          <div className="bg-white border border-emerald-100 rounded-2xl p-8 sm:p-16 text-center shadow-sm shadow-emerald-950/5">
             <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Icon
                 name="folder"
