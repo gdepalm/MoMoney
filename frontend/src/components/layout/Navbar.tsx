@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { authApi } from "@/lib/api";
 import Icon from "@/components/ui/Icon";
+import { useSidebar } from "./Appshell";
 
 export default function Navbar() {
   const { user, logout } = useStore();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebar();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -43,9 +45,20 @@ export default function Navbar() {
 
   return (
     <header
-      className="h-15 flex flex-shrink-0 items-center gap-4 border-b border-emerald-100 bg-white/95 px-6 shadow-sm shadow-emerald-950/5 backdrop-blur"
+      className="h-15 flex flex-shrink-0 items-center gap-3 border-b border-emerald-100 bg-white/95 px-4 sm:px-6 shadow-sm shadow-emerald-950/5 backdrop-blur"
       style={{ height: 60 }}
     >
+      {/* Mobile sidebar toggle */}
+      <button
+        type="button"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="md:hidden flex h-10 w-10 items-center justify-center rounded-lg text-emerald-800 transition-colors hover:bg-emerald-50 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+        aria-label="Toggle navigation"
+        aria-expanded={sidebarOpen}
+      >
+        <Icon name={sidebarOpen ? "x" : "menu"} size={18} />
+      </button>
+
       {/* Logo */}
       <button
         onClick={() => router.push("/dashboard")}

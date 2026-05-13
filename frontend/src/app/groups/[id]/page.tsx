@@ -101,7 +101,7 @@ export default function GroupPage() {
 
   return (
     <AppShell>
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         {loading ? (
           <div className="flex items-center justify-center h-48">
             <div className="w-6 h-6 border-2 border-slate-200 border-t-emerald-600 rounded-full animate-spin" />
@@ -134,9 +134,9 @@ export default function GroupPage() {
               Back to Dashboard
             </button>
 
-            <div className="flex items-start justify-between mb-6 gap-4">
-              <div className="min-w-0">
-                <h1 className="truncate font-display text-3xl font-semibold text-emerald-950">
+            <div className="flex flex-wrap items-start justify-between mb-6 gap-3">
+              <div className="min-w-0 flex-1 basis-full sm:basis-auto">
+                <h1 className="truncate font-display text-2xl sm:text-3xl font-semibold text-emerald-950">
                   {group.name}
                 </h1>
                 <p className="mt-1 text-sm text-emerald-950/60">
@@ -146,7 +146,7 @@ export default function GroupPage() {
                   {group.columns.length !== 1 ? "s" : ""}
                 </p>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
                 <button
                   onClick={load}
                   type="button"
