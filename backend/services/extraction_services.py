@@ -1,4 +1,3 @@
-from openai import OpenAI
 from dotenv import load_dotenv
 from typing import Any, Callable, List, Optional
 from PIL import Image, ImageOps
@@ -10,15 +9,44 @@ import json
 import io
 import os
 import re
+import requests
 
 load_dotenv()
 
 from services.image_services import encode_image_url
 
-client = OpenAI(
-    api_key="ollama",
-    base_url= os.getenv("OLLAMA_URL", "http://localhost:11434/v1")
-)
+
+def _ollama_chat_completions_url() -> str:
+    base_url = os.getenv("OLLAMA_URL", "http://localhost:11434/v1").rstrip("/")
+    return f"{base_url}/chat/completions"
+
+
+def _create_chat_completion(model: str, messages: list[dict[str, str]]) -> str:
+    response = requests.post(
+        _ollama_chat_completions_url(),
+        headers={"Content-Type": "application/json"},
+        json={
+            "model": model,
+            "messages": messages,
+            "temperature": 0,
+        },
+        timeout=180,
+    )
+
+    if not response.ok:
+        raise RuntimeError(response.text or f"Ollama request failed with {response.status_code}")
+
+    payload = response.json()
+    choices = payload.get("choices") or []
+    if not choices:
+        raise ValueError("Response LLM tidak memiliki choices")
+
+    message = choices[0].get("message") or {}
+    content = message.get("content")
+    if not content:
+        raise ValueError("Response kosong")
+
+    return content
 
 # =========================
 # PREPROCESSING FUNCTION
@@ -436,12 +464,10 @@ def _llm_extract_invoice_data(
     use null
     """
 
-    print(prompt_text)
-
     if os.getenv("EXTRACTION_DEBUG", "").lower() == "true":
         print("PROMPT:\n", prompt_text)
 
-    response = client.chat.completions.create(
+    raw_content = _create_chat_completion(
         model=model,
         messages=[
             {
@@ -456,13 +482,7 @@ def _llm_extract_invoice_data(
                 "content": prompt_text
             }
         ],
-        temperature=0
     )
-
-    raw_content = response.choices[0].message.content
-
-    if not raw_content:
-        raise ValueError("Response kosong")
 
     if os.getenv("EXTRACTION_DEBUG", "").lower() == "true":
         print("RAW LLM RESPONSE:\n", raw_content)
@@ -502,6 +522,7 @@ def _extract_invoice_data(
     columns: List[str],
     model: str = "qwen2.5:1.5b"
 ) -> dict:
+    print("Starting invoice data extraction with model:", model)
     raw_ocr_text, layout_ocr_text = extract_ocr_from_image_base64(image_base64)
     if os.getenv("EXTRACTION_DEBUG", "").lower() == "true":
         print("RAW OCR:\n", raw_ocr_text)
@@ -541,7 +562,6 @@ def extract_invoice_from_image(
         columns: List[str],
         model: str = "qwen2.5:1.5b"
 ):
-    
     image_base64 = encode_image_url(image_url)
 
     return _extract_invoice_data(

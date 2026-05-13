@@ -14,6 +14,7 @@ from domain.users.entity import User
 from services.dependencies.auth import get_current_user
 from services.dependencies.database import get_session
 from services.extraction_services import extract_invoice_from_image, extract_invoice_from_bytes
+from services.llm_config import get_llm_model
 
 
 router = APIRouter()
@@ -37,8 +38,7 @@ async def create_invoice_extraction(
     if group.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
-    model = os.getenv("LLM_MODEL", "qwen2.5:1.5b")
-    print(model)
+    model = get_llm_model()
     
     # Extract from uploaded file or invoice's image URL
     try:
