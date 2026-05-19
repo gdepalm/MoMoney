@@ -4,6 +4,12 @@ import { useState } from "react";
 import { Column, ExtractedItem } from "@/types";
 import Icon from "@/components/ui/Icon";
 
+function isMoneyColumn(name: string): boolean {
+  const n = name.trim().toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
+  if (/\b(price|amount|cost|harga|jumlah)\b/.test(n)) return true;
+  return ["total", "subtotal", "grand total", "total pembayaran", "total belanja"].includes(n);
+}
+
 interface Props {
   items: ExtractedItem[];
   columns: Column[];
@@ -68,7 +74,16 @@ export default function ReceiptPreview({ items: initial, columns, onConfirm, loa
                             onKeyDown={(e) => { if (e.key === "Enter" || e.key === "Escape") saveEdit(ri, col.id); }}
                             className="w-full px-2 py-1 border-2 border-emerald-500 rounded-lg text-[13px] focus:outline-none" />
                         ) : (
-                          <span>{row[col.id] || <span className="text-slate-300">—</span>}</span>
+                          <span>
+                            {row[col.id] != null && row[col.id] !== "" ? (
+                              <>
+                                {isMoneyColumn(col.name) && <span className="text-slate-500">$</span>}
+                                {String(row[col.id])}
+                              </>
+                            ) : (
+                              <span className="text-slate-300">—</span>
+                            )}
+                          </span>
                         )}
                       </td>
                     );

@@ -259,10 +259,35 @@ def parse_money(value: Any) -> Any:
 
     match = MONEY_PATTERN.search(value)
     money_text = match.group(0) if match else value
-    digits = re.sub(r"[^\d]", "", money_text)
-    if not digits:
+    clean = re.sub(r"[^\d.,]", "", money_text).strip()
+    if not clean:
         return value
-    return int(digits)
+
+    last_comma = clean.rfind(",")
+    last_dot = clean.rfind(".")
+
+    if last_comma != -1 and last_dot != -1:
+        if last_dot > last_comma:
+            # USD format: 1,234.56 — comma is thousands separator
+            clean = clean.replace(",", "")
+        else:
+            # European format: 1.234,56 — dot is thousands, comma is decimal
+            clean = clean.replace(".", "").replace(",", ".")
+    elif last_comma != -1:
+        after = clean[last_comma + 1:]
+        if len(after) <= 2:
+            # Decimal comma: 35,00 → 35.00
+            clean = clean.replace(",", ".")
+        else:
+            # Thousands comma: 1,234 → 1234
+            clean = clean.replace(",", "")
+    # Only dot present: treat as decimal separator (USD: 35.00, 1234.5)
+
+    try:
+        result = float(clean)
+        return result
+    except (ValueError, OverflowError):
+        return value
 
 
 def _find_column(columns: List[str], keywords: List[str]) -> Optional[str]:
@@ -456,6 +481,7 @@ def _llm_extract_invoice_data(
     - For every non-item field, return exactly ONE most likely value, never a list and never multiple candidates joined together
     - For date/tanggal fields, choose the invoice/transaction date only; prefer labels like "Invoice Date", "Date", "Tanggal", or "Tgl", and avoid due dates, P.O. dates, payment terms dates, or every date found in the OCR
     - For price/Price, use the receipt total, not the per-item price
+    - For price/amount/cost/harga/total/biaya fields, return the value as a plain decimal number using "." as the decimal separator (e.g., 35.00, 1234.56). Do not include currency symbols or thousand separators.
 
     Schema:
     {schema}
@@ -571,10 +597,14 @@ def extract_invoice_from_image(
     )
 
 
-def build_json_schema(columns: List[str]) -> str:
-    fields = ",\n  ".join([
-        f"\"{col}\": string | number | null"
-        for col in columns
-    ])
+_PRICE_KEYWORDS = {"price", "harga", "total", "amount", "biaya", "cost"}
 
-    return "{\n  " + fields + "\n}"
+
+def build_json_schema(columns: List[str]) -> str:
+    fields = []
+    for col in columns:
+        if any(kw in col.lower() for kw in _PRICE_KEYWORDS):
+            fields.append(f'"{col}": number | null')
+        else:
+            fields.append(f'"{col}": string | number | null')
+    return "{\n  " + ",\n  ".join(fields) + "\n}"
