@@ -248,6 +248,16 @@ export const receiptApi = {
       )
       .then((r) => r.data);
   },
+  uploadForGroup: (
+    groupId: number,
+    file: File,
+  ): Promise<{ preview: AIPreviewData }> => {
+    const fd = new FormData();
+    fd.append("file", file);
+    return api
+      .post<{ preview: AIPreviewData }>(`/groups/${groupId}/upload-receipt`, fd)
+      .then((r) => r.data);
+  },
   insertToSheet: (
     invoiceId: string,
     _jobId: string,
