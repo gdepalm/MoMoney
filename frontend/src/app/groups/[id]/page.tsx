@@ -24,7 +24,6 @@ export default function GroupPage() {
   const [invoiceToDelete, setInvoiceToDelete] = useState<InvoiceRead | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deletingInvoice, setDeletingInvoice] = useState(false);
-  const [creatingInvoice, setCreatingInvoice] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const groupId = Number(id);
@@ -66,17 +65,8 @@ export default function GroupPage() {
     }
   };
 
-  const handleNewInvoice = async () => {
-    setCreatingInvoice(true);
-    setActionError(null);
-    try {
-      const invoice = await invoicesApi.create({ groupId, data: {} });
-      router.push(`/upload/${invoice.id}`);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed to create invoice.";
-      setActionError(msg);
-      setCreatingInvoice(false);
-    }
+  const handleNewInvoice = () => {
+    router.push(`/upload/group/${groupId}`);
   };
 
   const handleDeleteInvoice = async () => {
@@ -164,15 +154,10 @@ export default function GroupPage() {
                 </button>
                 <button
                   onClick={handleNewInvoice}
-                  disabled={creatingInvoice}
                   type="button"
-                  className="flex min-h-10 items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 transition-colors hover:bg-emerald-800 disabled:bg-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                  className="flex min-h-10 items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-emerald-900/10 transition-colors hover:bg-emerald-800 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
                 >
-                  {creatingInvoice ? (
-                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <Icon name="upload" size={14} />
-                  )}
+                  <Icon name="upload" size={14} />
                   Upload Receipt
                 </button>
               </div>
@@ -475,7 +460,7 @@ function InvoicesTable({
                               {priceValue !== undefined &&
                               priceValue !== null &&
                               priceValue !== "" ? (
-                                String(priceValue)
+                                <><span className="text-emerald-700/60">$</span>{String(priceValue)}</>
                               ) : (
                                 <span className="text-slate-300">—</span>
                               )}
@@ -511,7 +496,7 @@ function InvoicesTable({
                   Total
                 </td>
                 <td className="border-r border-emerald-100 px-4 py-3 text-sm font-bold text-emerald-900 whitespace-nowrap">
-                  {formatTotal(priceSum)}
+                  <span className="text-emerald-700/60">$</span>{formatTotal(priceSum)}
                 </td>
                 <td />
               </tr>
