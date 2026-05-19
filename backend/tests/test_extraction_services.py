@@ -157,4 +157,4 @@ def test_extract_invoice_from_ocr_text_uses_parser_without_llm_when_enough_data(
     assert extracted["nama barang"] == "Pakaian SD PR, Pakaian SD LK"
     assert extracted["tanggal beli"] == "21 Juli 2022"
     assert extracted["Price"] == 8500000
-    assert build_json_schema(["Price"]) == '{\n  "Price": string | number | null\n}'
+    assert build_json_schema(["Price"]) == '{\n  "Price": number | null\n}'

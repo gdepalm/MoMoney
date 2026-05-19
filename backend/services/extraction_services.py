@@ -281,7 +281,14 @@ def parse_money(value: Any) -> Any:
         else:
             # Thousands comma: 1,234 → 1234
             clean = clean.replace(",", "")
-    # Only dot present: treat as decimal separator (USD: 35.00, 1234.5)
+    elif last_dot != -1:
+        # Only dots present — check if they're thousands separators
+        # Rule: every segment after the first dot has exactly 3 digits → thousands
+        # e.g. 8.500.000 → 8500000, 12.500 → 12500; but 35.00, 1234.5 → decimal
+        parts = clean.split(".")
+        if len(parts) > 1 and all(len(p) == 3 for p in parts[1:]):
+            clean = clean.replace(".", "")
+        # else: decimal dot — keep as-is (35.00, 1234.5)
 
     try:
         result = float(clean)
